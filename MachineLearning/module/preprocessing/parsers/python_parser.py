@@ -1,6 +1,6 @@
 # module/preprocessing/python_parser.py
 import ast
-from module.preprocessing.base_parser import BaseParser
+from .base_parser import BaseParser
 
 class PythonParser(BaseParser):
     def parse(self, code):

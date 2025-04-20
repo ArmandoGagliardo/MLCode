@@ -29,6 +29,7 @@ dataset/*.json
 dataset/*.csv
 outputs/
 runs/
+raw/
 
 # 👉 File Jupyter notebook temporanei
 .ipynb_checkpoints/

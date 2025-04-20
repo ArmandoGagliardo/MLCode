@@ -1,5 +1,5 @@
 # module/preprocessing/shell_parser.py
-from module.preprocessing.base_parser import BaseParser
+from .base_parser import BaseParser
 
 class ShellParser(BaseParser):
     def parse(self, script):

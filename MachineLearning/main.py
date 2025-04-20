@@ -20,7 +20,6 @@ def ensure_directories():
 
 # 🧠 TRAINING
 def train(task):
-    from module.model.train_generic import GenericTrainer
     from module.model.model_manager import ModelManager
 
     paths = {
@@ -37,8 +36,8 @@ def train(task):
     # Usa Trainer custom per generazione o sicurezza
     if task in ["code_generation", "security_classification"]:
         print("🚀 Addestramento con TrainingModel (custom)...")
-        from module.model.traning_model import TrainingModel
-        trainer = TrainingModel(model_manager, use_gpu=False)
+        from module.model.training_model_advanced import AdvancedTrainer
+        trainer = AdvancedTrainer(model_manager, use_gpu=False)
 
         trainer.train_model(
             dataset_path=dataset_path,
@@ -51,8 +50,9 @@ def train(task):
     
     # Altrimenti usa il trainer HuggingFace
     else:
+        from module.model.advanced_trainer_classifier import AdvancedTrainerClassifier
         print("🚀 Addestramento con HuggingFace Trainer...")
-        trainer = GenericTrainer(model_manager=model_manager, task_type=task)
+        trainer = AdvancedTrainerClassifier(model_manager)
         trainer.train_model(
             dataset_path=dataset_path,
             model_save_path=f"models/{task}",
@@ -68,7 +68,7 @@ def validate():
 
 # 🖥️ STREAMLIT UI
 def run_ui():
-    subprocess.run(["streamlit", "run", str(BASE_PATH / "ui/app.py")])
+    subprocess.run(["streamlit", "run", str(BASE_PATH / "module/ui/app.py"), "--server.runOnSave=False" ])
 
 # 💻 CLI PIPELINE INTERATTIVA
 def run_pipeline():
@@ -87,8 +87,12 @@ def run_pipeline():
         if text.strip().lower() == "exit":
             break
 
-        pipeline.debug_test(text)  # usa la logica centralizzata e chiara
+        result = pipeline.process(text)  # usa la logica centralizzata e chiara
+        print(f"✅ Risultato: {result}\n")
 
+def crawl_github():
+    from module.preprocessing.github_crawler import crawl
+    crawl()
 
 # 🎯 AVVIO
 if __name__ == "__main__":
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument("--validate", action="store_true")
     parser.add_argument("--ui", action="store_true")
     parser.add_argument("--pipeline", action="store_true")
-
+    parser.add_argument("--crawl", action="store_true")
     args = parser.parse_args()
 
     if args.train:
@@ -111,5 +115,7 @@ if __name__ == "__main__":
         run_ui()
     elif args.pipeline:
         run_pipeline()
+    elif args.crawl:
+        crawl_github()
     else:
         parser.print_help()

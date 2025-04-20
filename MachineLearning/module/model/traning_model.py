@@ -132,6 +132,9 @@ class TrainingModel():
 
     # Funzione collate personalizzata per gestire il padding dinamico (opzionale, se non si usa max_length)
     def collate_fn(self, batch):
+        """
+        Funzione collate personalizzata per gestire il padding dinamico e le etichette scalari o sequenziali.
+        """
         input_ids = [x["input_ids"] for x in batch]
         attention_mask = [x["attention_mask"] for x in batch]
         labels = [x["labels"] for x in batch]
@@ -154,6 +157,9 @@ class TrainingModel():
         }
     
     def tokenize_function(self, raw_data):
+        """
+        Tokenizza i dati di input e le etichette, gestendo diversi formati di etichetta.
+        """
         # Tokenizza il testo di input (sempre presente)
         tokenized_data = self._tokenizer(
             raw_data["input"],

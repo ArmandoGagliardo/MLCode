@@ -1,6 +1,6 @@
 # module/preprocessing/java_parser.py
 import re
-from module.preprocessing.base_parser import BaseParser
+from .base_parser import BaseParser
 
 class JavaParser(BaseParser):
     def parse(self, code):

@@ -3,6 +3,7 @@ import requests
 import json
 import ast
 from pathlib import Path
+from .parser_manager import get_parser
 
 # ======== CONFIG ========
 OUTPUT_DIR = Path("dataset")
@@ -10,6 +11,12 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 OUTPUT_FILE = OUTPUT_DIR / "dataset_github.json"
 MAX_FILES_PER_REPO = 20
 BRANCH = "main"  # oppure "master"
+EXTENSIONS = {
+    "python": ".py",
+    "javascript": ".js",
+    "java": ".java",
+    "shell": ".sh",
+}
 
 REPOS = [
     "psf/requests",
@@ -43,7 +50,7 @@ def save_raw_file(repo, path, content):
         f.write(content)
 
 # ======== FUNZIONI ========
-def get_py_files(repo):
+def get_files(repo):
     files = []
     url = f"{GITHUB_API}/{repo}/git/trees/{BRANCH}?recursive=1"
     res = requests.get(url)
@@ -54,12 +61,13 @@ def get_py_files(repo):
     for item in data.get("tree", []):
         path = item["path"].lower()
         if (
-            path.endswith(".py") and
             "test" not in path and
             "__init__" not in path and
             "setup" not in path
         ):
-            files.append(item["path"])
+            if Path(item["path"]).suffix in EXTENSIONS.values():
+                files.append(item["path"])
+
     return files[:MAX_FILES_PER_REPO]
 
 
@@ -69,27 +77,15 @@ def download_file(repo, path):
     return res.text if res.status_code == 200 else None
 
 
-def extract_functions(source_code):
+def extract_functions(source_code,extension):
     try:
-        tree = ast.parse(source_code)
-        functions = []
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                name = node.name
-                docstring = ast.get_docstring(node) or ""
-                start = node.lineno - 1
-                end = getattr(node.body[-1], 'end_lineno', node.body[-1].lineno)
-                lines = source_code.splitlines()[start:end]
-                code = "\n".join(lines)
-                functions.append({
-                    "func_name": name,
-                    "docstring": docstring.strip(),
-                    "code": code.strip(),
-                    "code_tokens": code.strip().split(),
-                    "language": "python",
-                    "original_string": code.strip()
-                })
-        return functions
+
+        parser = get_parser(extension)
+        if parser is None:
+            print(f"⚠️ Parser non trovato per l'estensione {extension}")
+            return []
+        
+        return parser.parse(source_code)
     except Exception as e:
         return []
 
@@ -106,15 +102,16 @@ def crawl():
 
     for repo in REPOS:
         print(f"\n🔎 Scansionando {repo}")
-        py_files = get_py_files(repo)
+        py_files = get_files(repo)
         for path in py_files:
+            extension = Path(path).suffix
             code = download_file(repo, path)
             if not code:
                 continue
             save_raw_file(repo, path, code)
-            funcs = extract_functions(code)
+            funcs = extract_functions(code,extension)
             for func in funcs:
-                if len(func["docstring"]) > 10 and len(func["code"].splitlines()) > 2:
+                 if len(func.get("input", "")) > 10 and len(func.get("output", "")) > 10:
                     key = f"{repo.replace('/', '_')}_{count}"
                     dataset[key] = func
                     count += 1

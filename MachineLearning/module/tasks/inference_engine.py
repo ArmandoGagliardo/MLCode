@@ -20,7 +20,8 @@ class InferenceEngine:
             top_p=0.95,               # Nucleus sampling
             temperature=0.8,          # Decisivo per controllare la creatività
             num_return_sequences=1,
-            early_stopping=True
+            early_stopping=True,
+            num_beams=5           # Beam search per migliorare la qualità
         )
-
-        return self.tokenizer.decode(output[0], skip_special_tokens=True).strip()
+        decoded = self.tokenizer.decode(output[0], skip_special_tokens=True).strip()
+        return decoded

@@ -1,7 +1,12 @@
 # module/ui/app.py (Streamlit)
 import streamlit as st
-from module.tasks.task_pipeline import TaskPipeline
+import sys
+from pathlib import Path
+# Aggiunge la root del progetto al PYTHONPATH
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
+sys.path.append(str(BASE_PATH))
 
+from module.tasks.task_pipeline import TaskPipeline
 
 st.title("💡 AI Assistant Universale")
 
@@ -16,5 +21,5 @@ model_paths = {
 
 if st.button("Esegui"):
     pipeline = TaskPipeline(model_paths)
-    result = pipeline.process(task_type, text)
+    result = pipeline.process(text)
     st.success(f"Risultato: {result}")
