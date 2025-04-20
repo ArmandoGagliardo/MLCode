@@ -1,0 +1,49 @@
+# 👉 Ambiente virtuale
+.venv/
+env/
+venv/
+
+# 👉 File temporanei / di sistema
+__pycache__/
+*.py[cod]
+*.so
+*.DS_Store
+*.swp
+Thumbs.db
+
+# 👉 Cache Python / HuggingFace / Torch
+.cache/
+.huggingface/
+*.log
+*.tmp
+*.bak
+
+# 👉 Checkpoint / log training
+logs/
+checkpoints/
+wandb/
+
+# 👉 Cartelle di output modello e dataset locale
+models/
+dataset/*.json
+dataset/*.csv
+outputs/
+runs/
+
+# 👉 File Jupyter notebook temporanei
+.ipynb_checkpoints/
+
+# 👉 VSCode / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# 👉 File system OneDrive (Windows)
+*.lnk
+*.tmp
+*.~*
+*.lock
+
+# 👉 Backup editor/testi
+*.bak
+*.orig

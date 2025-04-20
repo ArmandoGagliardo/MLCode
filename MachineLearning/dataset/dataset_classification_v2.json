@@ -1,0 +1,122 @@
+[
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Scrivi una funzione Python che restituisca la somma di due numeri.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Genera una lista di numeri primi.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Determina se un numero è pari.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Rimuovi duplicati da una lista.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Ordina una lista in ordine decrescente.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Conta le occorrenze di un valore.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Unisci due dizionari.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Calcola la media di una lista di numeri.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Verifica se una parola è palindroma.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "Inverti una stringa.",
+        "output": 0
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def sum(a, b): return a + b",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def primes(n): return [p for p in range(2,n) if all(p%d!=0 for d in range(2,p))]",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def is_even(n): return n % 2 == 0",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def remove_duplicates(lst): return list(set(lst))",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def sort_desc(lst): return sorted(lst, reverse=True)",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def count_occurrences(lst, val): return lst.count(val)",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def merge(d1, d2): return {**d1, **d2}",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def average(lst): return sum(lst) / len(lst)",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def is_palindrome(s): return s == s[::-1]",
+        "output": 1
+    },
+    {
+        "task_type": "text_classification",
+        "language": "python",
+        "input": "def reverse(s): return s[::-1]",
+        "output": 1
+    }
+]

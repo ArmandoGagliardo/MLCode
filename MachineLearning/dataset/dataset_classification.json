@@ -1,0 +1,82 @@
+[
+    {
+        "text": "Scrivi una funzione Python che restituisca la somma di due numeri.",
+        "label": 0
+    },
+    {
+        "text": "Genera una lista di numeri primi.",
+        "label": 0
+    },
+    {
+        "text": "Determina se un numero è pari.",
+        "label": 0
+    },
+    {
+        "text": "Rimuovi duplicati da una lista.",
+        "label": 0
+    },
+    {
+        "text": "Ordina una lista in ordine decrescente.",
+        "label": 0
+    },
+    {
+        "text": "Conta le occorrenze di un valore.",
+        "label": 0
+    },
+    {
+        "text": "Unisci due dizionari.",
+        "label": 0
+    },
+    {
+        "text": "Calcola la media di una lista di numeri.",
+        "label": 0
+    },
+    {
+        "text": "Verifica se una parola è palindroma.",
+        "label": 0
+    },
+    {
+        "text": "Inverti una stringa.",
+        "label": 0
+    },
+    {
+        "text": "def sum(a, b): return a + b",
+        "label": 1
+    },
+    {
+        "text": "def primes(n): return [p for p in range(2,n) if all(p%d!=0 for d in range(2,p))]",
+        "label": 1
+    },
+    {
+        "text": "def is_even(n): return n % 2 == 0",
+        "label": 1
+    },
+    {
+        "text": "def remove_duplicates(lst): return list(set(lst))",
+        "label": 1
+    },
+    {
+        "text": "def sort_desc(lst): return sorted(lst, reverse=True)",
+        "label": 1
+    },
+    {
+        "text": "def count_occurrences(lst, val): return lst.count(val)",
+        "label": 1
+    },
+    {
+        "text": "def merge(d1, d2): return {**d1, **d2}",
+        "label": 1
+    },
+    {
+        "text": "def average(lst): return sum(lst) / len(lst)",
+        "label": 1
+    },
+    {
+        "text": "def is_palindrome(s): return s == s[::-1]",
+        "label": 1
+    },
+    {
+        "text": "def reverse(s): return s[::-1]",
+        "label": 1
+    }
+]
