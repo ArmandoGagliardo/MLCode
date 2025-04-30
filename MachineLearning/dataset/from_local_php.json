@@ -1,0 +1,499 @@
+[
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "AOJ1031",
+        "input": "Scrivi una funzione php chiamata 'AOJ1031' con argomenti: ()",
+        "output": "AOJ1031() {\n        $L = &$this->L;\n        $LC = &$this->LC;\n        \n        $L = file( '/dev/stdin' );\n        $LC = count( $L );\n    }"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "BigInt",
+        "input": "Scrivi una funzione php chiamata 'BigInt' con argomenti: ($maxLen = 80)",
+        "output": "BigInt($maxLen = 80) {\n        $this->maxLen = $maxLen;\n        $n = ceil($maxLen / self::PLACE);\n        for ($i = 0; $i < $n; $i++) {\n            $this->num[] = '';\n        }\n        $this->zero = implode(array_fill(0, self::PLACE, '0'));\n    }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isFourCard",
+        "input": "Scrivi una funzione php chiamata 'isFourCard' con argomenti: ($max)",
+        "output": "isFourCard($max) {\n\treturn $max == 4;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isThreeCard",
+        "input": "Scrivi una funzione php chiamata 'isThreeCard' con argomenti: ($max)",
+        "output": "isThreeCard($max) {\n\treturn $max == 3;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isFullHouse",
+        "input": "Scrivi una funzione php chiamata 'isFullHouse' con argomenti: ($group)",
+        "output": "isFullHouse($group) {\n\t$c = count($group);\n\treturn ($group[$c - 1] == 3) && ($group[$c - 2] == 2);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isTwoPair",
+        "input": "Scrivi una funzione php chiamata 'isTwoPair' con argomenti: ($group)",
+        "output": "isTwoPair($group) {\n\t$c = count($group);\n\treturn ($group[$c - 1] == 2) && ($group[$c - 2] == 2);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isOnePair",
+        "input": "Scrivi una funzione php chiamata 'isOnePair' con argomenti: ($group)",
+        "output": "isOnePair($group) {\n\t$c = count($group);\n\treturn ($group[$c - 1] == 2) && ($group[$c - 2] < 2);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isStraight",
+        "input": "Scrivi una funzione php chiamata 'isStraight' con argomenti: ($hand)",
+        "output": "isStraight($hand) {\n\t$min = $hand[0];\n\tif ($min == 1 && !in_array(2, $hand)) {\n\t\tfor ($i = 10; $i <= 13; $i++) {\n\t\t\tif (!in_array($i, $hand)) {\n\t\t\t\treturn false;\n\t\t\t}\n\t\t}\n\t\treturn true;\n\t}\n\tfor ($i = $min + 1; $i < $min + 5; $i++) {\n\t\tif (!in_array($i, $hand)) {\n\t\t\treturn false;\n\t\t}\n\t}\n\treturn true;\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "PQ",
+        "input": "Scrivi una funzione php chiamata 'PQ' con argomenti: ($priority1, $priority2)",
+        "output": "PQ($priority1, $priority2) {\n                if ($priority1 === $priority2) return 0;\n                return $priority1 > $priority2 ? -1 : 1;\n        }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "frontIsClear",
+        "input": "Scrivi una funzione php chiamata 'frontIsClear' con argomenti: ($x,$y,$d,$l)",
+        "output": "frontIsClear($x,$y,$d,$l) {\n      return ($d == 0 && ($y>0 ? !$l[2*$y-1][$x] : 1)) || ($d == 1 && ($x<4 ? !$l[2*$y][$x] : 1))\n          || ($d == 2 && ($y<4 ? !$l[2*$y+1][$x] : 1)) || ($d == 3 && ($x>0 ? !$l[2*$y][$x-1] : 1));\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "canMove",
+        "input": "Scrivi una funzione php chiamata 'canMove' con argomenti: ($x,$y,$d,$l)",
+        "output": "canMove($x,$y,$d,$l) {\n      return ($d==0 && $x!=4 && $l[2*$y][$x]) || ($d==1 && $y!=4 && $l[2*$y+1][$x])\n          || ($d==2 && $x!=0 && $l[2*$y][$x-1]) || ($d==3 && $y!=0 && $l[2*$y-1][$x]);\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "move",
+        "input": "Scrivi una funzione php chiamata 'move' con argomenti: (&$p,$stepx,$stepy)",
+        "output": "move(&$p,$stepx,$stepy) {\n      if($p[2] == 0 || $p[2] == 2)\n          $p[0] = $p[0] + $stepx[$p[2]];\n      else\n          $p[1] = $p[1] + $stepy[$p[2]];\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "getGroup",
+        "input": "Scrivi una funzione php chiamata 'getGroup' con argomenti: ($a, $b, $c, $d)",
+        "output": "getGroup($a, $b, $c, $d) {\n    $arr = array($a, $b, $c, $d);\n    $group = array();\n    $check = array();\n    for ($i = 0; $i < 4; $i++) {\n        for ($j = 0; $j < 4; $j++) {\n            if ($i === $j) {\n                continue;\n            }\n            for ($k = 0; $k < 4; $k++) {\n                if ($i === $k || $j === $k) {\n                    continue;\n                }\n                $l = 6 - $i - $j - $k;\n                $arr2 = array($arr[$i], $arr[$j], $arr[$k], $arr[$l]);\n                $str = implode(',', $arr2);\n                if (!in_array($str, $check)) {\n                    $check[] = $str;\n                    $group[] = $arr2;\n                }\n            }\n        }\n    }\n\n    return $group;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "getPattern",
+        "input": "Scrivi una funzione php chiamata 'getPattern' con argomenti: ($format, $group)",
+        "output": "getPattern($format, $group) {\n    $ptn = array();\n    $arr = explode(',', '+,-,*');\n    list($a, $b, $c, $d) = $group;\n    for ($i = 0; $i < 3; $i++) {\n        for ($j = 0; $j < 3; $j++) {\n            for ($k = 0; $k < 3; $k++) {\n                $ptn[] = sprintf($format, $a, $arr[$i], $b, $arr[$j], $c, $arr[$k], $d);\n            }\n        }\n    }\n    return $ptn;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "frontIsClear",
+        "input": "Scrivi una funzione php chiamata 'frontIsClear' con argomenti: ($p, $l)",
+        "output": "frontIsClear($p, $l) {\n      list($x,$y,$d) = $p;\n      return ($d == 0 && ($y>0 ? !$l[2*$y-1][$x] : 1))\n             || ($d == 1 && ($x<4 ? !$l[2*$y][$x] : 1))\n             || ($d == 2 && ($y<4 ? !$l[2*$y+1][$x] : 1))\n             || ($d == 3 && ($x>0 ? !$l[2*$y][$x-1] : 1));\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "canMove",
+        "input": "Scrivi una funzione php chiamata 'canMove' con argomenti: ($p,$l)",
+        "output": "canMove($p,$l) {\n      list($x,$y,$d) = $p;\n      switch($p[2]) {\n      case 0:\n          return $x!=4 && $l[2*$y][$x];\n      case 1:\n          return $y!=4 && $l[2*$y+1][$x];\n      case 2:\n          return $x!=0 && $l[2*$y][$x-1];\n      case 3:\n          return $y!=0 && $l[2*$y-1][$x];\n      }\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "move",
+        "input": "Scrivi una funzione php chiamata 'move' con argomenti: (&$p,$step)",
+        "output": "move(&$p,$step) {\n      $p[0] = $p[0] + $step[$p[2]][0];\n      $p[1] = $p[1] + $step[$p[2]][1];\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "solve",
+        "input": "Scrivi una funzione php chiamata 'solve' con argomenti: ($line)",
+        "output": "solve($line) {\n\t$words = explode(' ', $line);\n\tforeach ($words as $w) {\n\t\tif (strlen($w) != 4) {\n\t\t\tcontinue;\n\t\t}\n\t\tfor ($a = 1; $a < 26; $a++) {\n\t\t\tfor ($b = 0; $b < 26; $b++) {\n\t\t\t\tif (encrypt($a, $b, 'that') == $w || encrypt($a, $b, 'this') == $w) {\n\t\t\t\t\treturn decrypt($a, $b, $line);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "decrypt",
+        "input": "Scrivi una funzione php chiamata 'decrypt' con argomenti: ($a, $b, $line)",
+        "output": "decrypt($a, $b, $line) {\n\t$decrypt_map = generate_decrypt_map($a, $b);\n\t$dec = '';\n\tfor ($i = 0; $i < strlen($line); $i++) {\n\t\t$char = $line[$i];\n\t\tif (preg_match('/[a-z]/', $char)) {\n\t\t\t$dec .= $decrypt_map[$char];\n\t\t} else {\n\t\t\t$dec .= $char;\n\t\t}\n\t}\n\treturn $dec;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "generate_decrypt_map",
+        "input": "Scrivi una funzione php chiamata 'generate_decrypt_map' con argomenti: ($a, $b)",
+        "output": "generate_decrypt_map($a, $b) {\n\tglobal $map;\n\t$result = array();\n\tforeach ($map as $k => $c) {\n\t\t$result[$k] = encrypt_char($a, $b, $k);\n\t}\n\treturn array_flip($result);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "encrypt",
+        "input": "Scrivi una funzione php chiamata 'encrypt' con argomenti: ($a, $b, $w)",
+        "output": "encrypt($a, $b, $w) {\n\t$result = '';\n\tfor($i = 0; $i < strlen($w); $i++) {\n\t\t$result .= encrypt_char($a, $b, $w[$i]);\n\t}\n\treturn $result;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "encrypt_char",
+        "input": "Scrivi una funzione php chiamata 'encrypt_char' con argomenti: ($a, $b, $char)",
+        "output": "encrypt_char($a, $b, $char) {\n\tglobal $map, $rev_map;\n\t$g = $map[$char];\n\t$enc = ($a * $g + $b) % 26;\n\treturn $rev_map[$enc];\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "PriorityQueue",
+        "input": "Scrivi una funzione php chiamata 'PriorityQueue' con argomenti: ($priority1, $priority2)",
+        "output": "PriorityQueue($priority1, $priority2) {\n    if ($priority1 === $priority2) return 0;\n    return $priority1 < $priority2 ? 1 : -1;\n  }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "main",
+        "input": "Scrivi una funzione php chiamata 'main' con argomenti: ()",
+        "output": "main() {\n\twhile(($n = trim(fgets(STDIN))) != -1) {\n\t\t$hunter = new TreasureHunter(1, 0);\n\t\t$hunter->findTreasure($n);\n\t}\n\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "ength",
+        "input": "Scrivi una funzione php chiamata 'ength' con argomenti: == 1){",
+        "output": "ength== 1){ $ans = \"C\";\n        }elseif($tmp_length == 2){\n            $ans = judge_line2($string_tmp);\n        }elseif($tmp_length == 3){\n            $ans = judge_line3($string_tmp);\n        }\n    return $ans;\n}\n// ラインが二列だった時の図形判別用\nfunction judge_line2($string_tmp){\n    $pos = strpos($string_tmp[0], \"1\");\n    $pos2 = strpos($string_tmp[1], \"1\");\n    if("
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isStraight",
+        "input": "Scrivi una funzione php chiamata 'isStraight' con argomenti: ($cards)",
+        "output": "isStraight($cards) {\n    if (max($cards) - min($cards) === 4) {\n        return true;\n    }\n    if ($cards[0] === 1 && $cards[1] === 10 && $cards[4] === 13) {\n        return true;\n    }\n    return false;\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Queue",
+        "input": "Scrivi una funzione php chiamata 'Queue' con argomenti: ($item)",
+        "output": "Queue($item) {\n        $this->size++;\n        array_push($this->arr, $item);\n    }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "search",
+        "input": "Scrivi una funzione php chiamata 'search' con argomenti: ($s)",
+        "output": "search($s) {\n    $length = strlen($s);\n    $que = new Queue();\n    $que->push([0, $s]);\n    $dic = [];\n    $r = \"\";\n    $g = \"\";\n    $b = \"\";\n    for ($i = 0; $i < $length; $i++) {\n        $r .= \"r\";\n        $g .= \"g\";\n        $b .= \"b\";\n    }\n    $singles = [$r, $g, $b];\n    $ok = false;\n    while (!$que->isEmpty()) {\n        list($score, $state) = $que->pop();\n        if (isSingleColor($state, $singles)) {\n            echo $score . \"\\n\";\n            $ok = true;\n            break;\n        }\n        for ($i = 0; $i < $length - 1; $i++) {\n            $c1 = $state[$i];\n            $c2 = $state[$i + 1];\n            if ($c1 != $c2) {\n                $c3 = other($c1, $c2);\n                $newState = substr_replace($state, $c3, $i, 2);\n                if (!array_key_exists($newState, $dic)) {\n                    $dic[$newState] = $score + 1;\n                    $que->push([$score + 1, $newState]);\n                }\n            }\n        }\n    }\n    if (!$ok) {\n        echo \"NA\\n\";\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "isSingleColor",
+        "input": "Scrivi una funzione php chiamata 'isSingleColor' con argomenti: ($s, $singles)",
+        "output": "isSingleColor($s, $singles) {\n    foreach ($singles as $single) {\n        if ($s === $single) {\n            return true;\n        }\n    }\n    return false;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "other",
+        "input": "Scrivi una funzione php chiamata 'other' con argomenti: ($c1, $c2)",
+        "output": "other($c1, $c2) {\n    if ($c1 === \"r\") {\n        if ($c2 === \"g\") {\n            return \"bb\";\n        } elseif ($c2 === \"b\") {\n            return \"gg\";\n        }\n    } elseif ($c1 === \"g\") {\n        if ($c2 === \"r\") {\n            return \"bb\";\n        } elseif ($c2 === \"b\") {\n            return \"rr\";\n        }\n    } elseif ($c1 === \"b\") {\n        if ($c2 === \"r\") {\n            return \"gg\";\n        } elseif ($c2 === \"g\") {\n            return \"rr\";\n        }\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "wfs",
+        "input": "Scrivi una funzione php chiamata 'wfs' con argomenti: ()",
+        "output": "wfs() {\n\tglobal $sec;\n\tglobal $ary_start;\n\tglobal $goal_flag;\n\n\t$queue[0] = $ary_start;\t\t\t//スタートを$queueに入れて開始\n\t$queue_size = count($queue[0]);\t//キューの長さを取得\n\t$queue[0]['sec'] = 0;\t\t\t//スタート時の秒数(階層の深さ)を入れる\n\twhile (!empty($queue)) {\t\t//$queueが1つ以上あればループ\n\t   $cur = array_shift($queue);\t//配列$queueの頭から１つ取り出す。\n\t   \n\t   //終了条件。全ての配列が同じ色なら終了\n\t   $cnt = 0;\t//カウント\n\t   for($i=0; $i<$queue_size; $i++){\n\t       if ($cur[$i] !== $cur[0]){ break; }\n\t       $cnt++;\n\t   }\n\t   if ($cnt === $queue_size) {\n\t       $goal_flag = 1;\n\t       $sec = $cur['sec'];\t//ゴールした時の秒数\n\t       break;\t//色がすべて同じならwhileを抜ける\n\t   }\n\t   \n\t   //探索\n\t    for($i=0; $i<$queue_size-1; $i++){\n\t    \tif ($cur[$i] !== $cur[$i+1]){\t//隣接する体節の色が違う場合\n    \t\t\t$new = $cur;\n    \t\t\t$new['sec'] = $cur['sec'] + 1;\n\t    \t\t//変化する色ごとに場合分け\n\t    \t\tif ($cur[$i] !== 'r' && $cur[$i+1] !== 'r'){\n\t    \t\t\t$new[$i] = 'r';  $new[$i+1] = 'r';\n\t    \t\t} else if ($cur[$i] !== 'g' && $cur[$i+1] !== 'g'){\n\t    \t\t\t$new[$i] = 'g';  $new[$i+1] = 'g';\n\t    \t\t} else {\n\t    \t\t\t$new[$i] = 'b';  $new[$i+1] = 'b';\n\t    \t\t}\n\t    \t\t$str = toString($new);\n\t    \t\tif (empty($visited[$str])){\n\t\t    \t\tarray_push($queue, $new);\n\t\t\t\t    $visited[$str] = 1;\n\t\t\t\t}\n\t    \t}\n\t    }\n\t}\n}\n\n//再訪防止用。配列のキーに文字列を設定するために使用\nfunction toString($ary){\n\t$str = '';\n\tforeach ($ary as $key => $val){\n\t\tif (is_numeric($key)) {\t\t//配列のキーが数値ならば（secがあるので）\n\t\t\t$str = $str.$val;\n\t\t}\n\t}\n\treturn $str;\n}\n\n\nwhile (1){\n\t//変数の初期化\n\t$sec = 0;\n\t$goal_flag = 0;\n\n\t//ファイル読み込み\n\t$s"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "whatTriangle",
+        "input": "Scrivi una funzione php chiamata 'whatTriangle' con argomenti: ($three_seg)",
+        "output": "whatTriangle($three_seg) {\n    sort($three_seg);\n    if ($three_seg[0]+$three_seg[1] <= $three_seg[2]) {\n        return false;\n    } elseif (pow($three_seg[0], 2)+pow($three_seg[1], 2) === pow($three_seg[2], 2)) {\n        return 'RT';\n    } elseif (pow($three_seg[0], 2)+pow($three_seg[1], 2) > pow($three_seg[2], 2)) {\n        return 'AT';\n    } elseif (pow($three_seg[0], 2)+pow($three_seg[1], 2) < pow($three_seg[2], 2)) {\n        return 'OT';\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "つ取り",
+        "input": "Scrivi una funzione php chiamata 'つ取り' con argomenti: 出す",
+        "output": "つ取り出す //終了条件は不要\n\t   \n\t   //探索ロジック\n\t   //０がどこにあるか\n\t   for ($i=0; $i<=7; $i++) {\n\t       if ($cur[$i]===0){\n\t           $zero = $i;\n\t           break;\n\t       }\n\t   }\n\t   \n\t   for ($i=0; $i<=3; $i++) {\n\t       //スワップ\n\t       $new_zero = $zero + $move[$i];\t\t//ゼロの位置を移動\n\t       $new = $cur;\t\t//バグの原因修正１。for文なので$curのままスワップ操作するとNG\n\t       if ($new_zero>=0 && !empty($new[$new_zero])) {\n\t           if ($zero===3 && $new_zero===4){ continue; }    //バグの修正２。\n\t           if ($zero===4 && $new_zero===3){ continue; }    //バグの修正２。\n\t           $new[$zero] = $new[$new_zero];\n\t           $new[$new_zero] = 0;\n\t           //未探索か\n\t           $str = toString($new);\n\t           if (!isset($visited[$str])) {\t\t\t\t//バグの修正１。empty()は数値の0、文字列の'0'も空と見なしてしまう。ここはisset()が良い\n\t\t\t\t    $new['dist'] = $cur['dist'] + 1;\n\t\t\t\t    $visited[$str] = $new['dist'];\t\t//発見したパターンに手数を入れておく\n\t\t    \t\tarray_push($queue, $new);\n\t           }\n\t       }\n\t   }\n\t}\n}\n\n//toString\nfunction toString($ary){\n\t$str = '';\n\tforeach ($ary as $key => $val){\n\t\tif (is_numeric($key)) {\t\t//配列のキーが数値ならば（distがあるので）\n\t\t\t$str = $str.$val;\n\t\t}\n\t}\n\treturn $str;\n}\n\n//探索\nwfs();\n//print_r($visited);\n\nwhile (1){\n\t//変数の初期化\n\n\t//ファイル読み込み\n\t$ary_start = fscanf($file_handle, '%d %d %d %d %d %d %d %d');\n\t//終了条件\n\tif ($ary_start === false){\n\t\tbreak;\n\t}\n\t\n\t//最短手数を計算\n\t$str = toString($ary_start);\n\t\n\t//出力\n\tif (isset($visited[$str])){\n\t\techo $visited[$str];\n\t} else {\n\t\techo 'ERROR';\n\t}\n\techo PHP_EOL;\n}\n\nfclose($file_handle);"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "drop",
+        "input": "Scrivi una funzione php chiamata 'drop' con argomenti: ($x, $y, $size)",
+        "output": "drop($x, $y, $size) {\n    global $field, $dx, $dy;\n    $field[$y][$x]++;\n    for ($i = 0; $i < $size; $i++) {\n        for($j = 0; $j < 4; $j++) {\n            $nx = $x + $dx[$i][$j];\n            $ny = $y + $dy[$i][$j];\n            if (isset($field[$ny][$nx])) {\n                $field[$ny][$nx]++;\n            }\n        }\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "drop",
+        "input": "Scrivi una funzione php chiamata 'drop' con argomenti: ($x, $y, $size)",
+        "output": "drop($x, $y, $size) {\n    global $updateRange;\n    foreach ($updateRange[$size] as $point) {\n        list($dx, $dy) = $point;\n        $nx = $x + $dx;\n        $ny = $y + $dy;\n        update($nx, $ny);\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "update",
+        "input": "Scrivi una funzione php chiamata 'update' con argomenti: ($nx, $ny)",
+        "output": "update($nx, $ny) {\n    global $mp;\n    if ((0 <= $nx) and ($nx < 10) and (0 <= $ny) and ($ny < 10)) {\n        $mp[$ny][$nx]++;\n    }\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "getAnswer",
+        "input": "Scrivi una funzione php chiamata 'getAnswer' con argomenti: ($data_ary,$opes,$temp)",
+        "output": "getAnswer($data_ary,$opes,$temp) {\n    for($a = 0;$a < 4;$a++){\n        for($b = 0;$b < 4;$b++){\n            if($a != $b){\n                for($c = 0;$c < 4;$c++){\n                    if($a != $b && $b != $c && $a != $c){\n                        for($d = 0;$d < 4 ;$d++){\n                            if($a != $b && $b != $c && $c != $d && $a != $c && $a != $d && $b != $d){\n                                foreach($opes as $ope){\n                                    $op = explode(\" \",$ope);\n                                    $math = sprintf($temp,$data_ary[$d],$op[0],$data_ary[$c],$op[1],$data_ary[$b],$op[2],$data_ary[$a]);\n                                    eval('$ans = '.$math.';');\n                                    if($ans == 10){\n                                        echo \"(\".$math.\")\\n\";\n                                        return true;\n                                    }\n                                }\n                            }\n                        }\n                    }\n                }\n            }\n        }\n    }\n    return false;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "update",
+        "input": "Scrivi una funzione php chiamata 'update' con argomenti: ($nums)",
+        "output": "update($nums) {\n    foreach ($nums as $k => $v) {\n        if ($v === 0) {\n            unset($nums[$k]);\n        }\n    }\n    return $nums;\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Tile",
+        "input": "Scrivi una funzione php chiamata 'Tile' con argomenti: ($dir)",
+        "output": "Tile($dir) {\n        $this->flg_ = false;\n        $this->dir_ = $dir;\n    }"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Person",
+        "input": "Scrivi una funzione php chiamata 'Person' con argomenti: ($y, $x)",
+        "output": "Person($y, $x) {\n        $this->y_ = $y;\n        $this->x_ = $x;\n    }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "main",
+        "input": "Scrivi una funzione php chiamata 'main' con argomenti: ()",
+        "output": "main() {\n\t$numSets = trim(fgets(STDIN));\n\t$count = 0;\n\twhile ($count < $numSets) {\n\t\t$data = getPoints();\n\t\t$adjusted = adjustAlignment($data);\n\t\t$result = calc($adjusted);\n\t\tprintf(\"%.3f %.3f %.3f\\n\", round($result[0], 3), round($result[1], 3), round($result[2], 3));\n\t\t$count++;\n\t}\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "getPoints",
+        "input": "Scrivi una funzione php chiamata 'getPoints' con argomenti: ()",
+        "output": "getPoints() {\n\t$input = trim(fgets(STDIN));\n\n\tlist($x1, $y1, $x2, $y2, $x3, $y3) = explode(' ', $input);\n\n\t$a = new Point($x1, $y1);\n\t$b = new Point($x2, $y2);\n\t$c = new Point($x3, $y3);\n\n\treturn array($a, $b, $c);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "adjustAlignment",
+        "input": "Scrivi una funzione php chiamata 'adjustAlignment' con argomenti: ($points)",
+        "output": "adjustAlignment($points) {\n\t$minKey = 0;\n\t$min = $points[$minKey];\n\n\tforeach ($points as $k => $p) {\n\t\tif ($min->x > $p->x) {\n\t\t\t$min = $p;\n\t\t\t$minKey = $k;\n\t\t}\n\t}\n\n\tunset($points[$minKey]);\n\n\t$bottom = reset($points);\n\t$bottomKey = key($points);\n\tforeach ($points as $k => $p) {\n\t\tif ($bottom->y > $p->y) {\n\t\t\t$bottom = $p;\n\t\t\t$bottomKey = $k;\n\t\t}\n\t}\n\tunset($points[$bottomKey]);\n\n\t$top = reset($points);\n\t$return = array($min, $bottom, $top);\n\n\tdebug($return);\n\n\treturn $return;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "calc",
+        "input": "Scrivi una funzione php chiamata 'calc' con argomenti: ($points)",
+        "output": "calc($points) {\n\t$min = $points[0];\n\t$a = new Point(0, 0);\n\t$b = $points[1]->shift(-1 * $min->x, -1 * $min->y);\n\t$c = $points[2]->shift(-1 * $min->x, -1 * $min->y);\n\n\tdebug($a . $b . $c );\n\t$theta = abs($b->x) > 0.00001 ? atan($b->y / $b->x) : -3.1415926535 / 2;\n\n\tdebug(\"theta = $theta\");\n\n\t$b->rotate(-$theta);\n\t$c->rotate(-$theta);\n\n\tdebug($a . $b . $c );\n\n\t$scale = abs(1/$b->x);\n\t$b->scale($scale);\n\t$c->scale($scale);\n\n\t$x0 = $c->x;\n\t$y0 = $c->y;\n\n\t$gx = 1/2;\n\t$gy = (- $x0 + $x0*$x0 + $y0*$y0)/(2*$y0);\n\n\t$g = new Point($gx, $gy);\n\n\t$r = sqrt($g->y * $g->y + 0.5 * 0.5);\n\t$r *= 1/$scale;\n\n\t$g->scale(1/$scale);\n\t$g->rotate($theta);\n\t$g->shift($min->x, $min->y);\n\n\treturn array($g->x, $g->y, $r);\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Point",
+        "input": "Scrivi una funzione php chiamata 'Point' con argomenti: ($x, $y)",
+        "output": "Point($x, $y) {\n\t\t$this->x = $x;\n\t\t$this->y = $y;\n\t}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "debug",
+        "input": "Scrivi una funzione php chiamata 'debug' con argomenti: ($out)",
+        "output": "debug($out) {\n\tglobal $DEBUG_LEVEL;\n\tif (!isset($DEBUG_LEVEL) || $DEBUG_LEVEL <= 0) {\n\t\treturn null;\n\t}\n\tif (is_string($out)) {\n\t\techo $out . \"\\n\";\n\t} else {\n\t\tvar_dump($out);\n\t}\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "choiceBankFromDataSet",
+        "input": "Scrivi una funzione php chiamata 'choiceBankFromDataSet' con argomenti: ()",
+        "output": "choiceBankFromDataSet() {\n        $s = trim(fgets(STDIN));\n        $s = str_replace(array(\"\\r\\n\",\"\\r\",\"\\n\"), '', $s);\n        // ????????°\n        $bankNum = (int)$s;\n    \n        if ($bankNum == 0) {\n            return false;\n        }\n    \n        $s = trim(fgets(STDIN));\n        $s = str_replace(array(\"\\r\\n\",\"\\r\",\"\\n\"), '', $s);\n        $year = (int)$s;\n    \n        $bankInfo;\n        $benefitTemp = 0;\n        $benefitMax  = 0;\n        $bestBankId;\n        \n        for ( $i = 0; $i < $bankNum; $i++) {\n            $s = trim(fgets(STDIN));\n            $s = str_replace(array(\"\\r\\n\",\"\\r\",\"\\n\"), '', $s);\n            $a = explode(\" \", $s);\n            $bankInfo = array('bank_id' => intval($a[0]), 'interest_rate' => intval($a[1]), 'interest_kind' => intval($a[2]));\n            $benefitTemp = calcBenefit($year, $bankInfo);\n            if ($benefitMax < $benefitTemp) {\n                $benefitMax = $benefitTemp;\n                $bestBankId = $bankInfo['bank_id'];\n            }\n        }\n        \n        echo($bestBankId . PHP_EOL);\n        return true;\n    }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "pushBall",
+        "input": "Scrivi una funzione php chiamata 'pushBall' con argomenti: ($dataset)",
+        "output": "pushBall($dataset) {\n\t$b = new Tube ();\n\t$c = new Tube ();\n\n\tforeach ( $dataset as $n ) {\n\t\tif ($b->isPushable ( $n ) && $c->isPushable ( $n )) {\n\t\t\tif ($b->peek () < $c->peek ()) {\n\t\t\t\t$c->push ( $n );\n\t\t\t} else {\n\t\t\t\t$b->push ( $n );\n\t\t\t}\n\t\t} else if ($b->isPushable ( $n )) {\n\t\t\t$b->push ( $n );\n\t\t} else if ($c->isPushable ( $n )) {\n\t\t\t$c->push ( $n );\n\t\t} else {\n\t\t\treturn false;\n\t\t}\n\t}\n\treturn true;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "main",
+        "input": "Scrivi una funzione php chiamata 'main' con argomenti: ()",
+        "output": "main() {\n\tglobal $num;\n\twhile($n = trim(fgets(STDIN))) {\n\t\tinit($n);\n\t\twhile ($num <= $n * $n) {\n\t\t\ttrynext();\n\t\t}\n\t\tprintTable();\n\t}\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "init",
+        "input": "Scrivi una funzione php chiamata 'init' con argomenti: ($n)",
+        "output": "init($n) {\n\tglobal $table, $num, $i, $j, $size;\n\tinitTable($table, $n);\n\t$size = $n;\n\t$num = 1;\n\t$i = (int)($n/2) + 1;\n\t$j = (int)($n/2);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "initTable",
+        "input": "Scrivi una funzione php chiamata 'initTable' con argomenti: (&$table, $n)",
+        "output": "initTable(&$table, $n) {\n\t$row = array_fill(0, $n, 0);\n\tfor ($i = 0; $i < $n; $i++) {\n\t\t$table[$i] = $row;\n\t}\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "trynext",
+        "input": "Scrivi una funzione php chiamata 'trynext' con argomenti: ()",
+        "output": "trynext() {\n\tglobal $table, $num, $i, $j, $size;\n\n\t// はみ出る場合\n\tif ($j >= $size) {\n\t\t$j = 0;\n\t}\n\tif ($j < 0) {\n\t\t$j = $size - 1;\n\t}\n\tif ($i >= $size) {\n\t\t$i = 0;\n\t}\n\n\tif ($table[$i][$j] > 0) {\n\t\t$i++;\n\t\t$j--;\n\t\ttrynext();\n\t} else {\n\t\t// 格納成功\n\t\t$table[$i][$j] = $num;\n\t\t// 次の基本位置\n\t\t$i++;\n\t\t$j++;\n\t\t$num++;\n\t\treturn;\n\t}\n}\n\nfunction printTable() {\n\tgloba"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "gcd",
+        "input": "Scrivi una funzione php chiamata 'gcd' con argomenti: ($a, $b)",
+        "output": "gcd($a, $b) {\n    if ($a === $b) {\n        return $a;\n    }\n    return $a > $b ? gcd($a - $b, $b) : gcd($a, $b - $a);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "dec",
+        "input": "Scrivi una funzione php chiamata 'dec' con argomenti: ($w, $a, $b)",
+        "output": "dec($w, $a, $b) {\n    $w = str_split($w);\n    for ($i = 0; $i < count($w); $i++) {\n        $asc = ord($w[$i]) - ord('a');\n        $w[$i] = chr(ord('a') + ($a * $asc + $b) % 26);\n    }\n    return implode('', $w);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "solve",
+        "input": "Scrivi una funzione php chiamata 'solve' con argomenti: ()",
+        "output": "solve() {\n    $mp = [];\n    for ($i = 0; $i < 12; $i++) {\n        $mp[$i] = trim(fgets(STDIN));\n        //echo $mp[$i] . \"\\n\";\n        //echo $mp[$i][10] . \"\\n\";\n    }\n    $visited = array_fill(0, 12, array_fill(0, 12, false));\n    $cnt = 0;\n    for ($y = 0; $y < 12; $y++) {\n        for ($x = 0; $x < 12; $x++) {\n            if (!$visited[$y][$x] and $mp[$y][$x] === \"1\") {\n                $cnt++;\n                $visited[$y][$x] = true;\n                search($x, $y, $mp, $visited);\n            }\n        }\n    }\n    return [$cnt, fgets(STDIN)];\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "main",
+        "input": "Scrivi una funzione php chiamata 'main' con argomenti: ()",
+        "output": "main() {\n\t$points = array();\n\twhile ($line = trim(fgets(STDIN))) {\n\t\tlist($x, $y) = explode(',', $line);\n\t\t$points[] = new Point($x, $y);\n\t}\n\t$sum = 0;\n\t$o = $points[0];\n\tfor ($i = 1; $i < count($points) - 1; $i++) {\n\t\t$p1 = $points[$i];\n\t\t$p2 = $points[$i+1];\n\n\t\t$T = new Triangle($o, $p1, $p2);\n\t\t$sum += $T->getArea();\n\t}\n\techo $sum . \"\\n\";\n}"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Triangle",
+        "input": "Scrivi una funzione php chiamata 'Triangle' con argomenti: (Point $A, Point $B, Point $C)",
+        "output": "Triangle(Point $A, Point $B, Point $C) {\n\t\t$this->A = $A;\n\t\t$this->B = $B;\n\t\t$this->C = $C;\n\n\t\t$this->a = $B->distanceFrom($C);\n\t\t$this->b = $C->distanceFrom($A);\n\t\t$this->c = $A->distanceFrom($B);\n\t}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "getAnswer",
+        "input": "Scrivi una funzione php chiamata 'getAnswer' con argomenti: ($data_ary,$opes,$temp)",
+        "output": "getAnswer($data_ary,$opes,$temp) {\n    for($a = 0;$a < 4;$a++){\n        for($b = 0;$b < 4;$b++){\n            for($c = 0;$c < 4;$c++){\n                for($d = 0;$d < 4 ;$d++){\n                    if($a != $b && $b != $c && $c != $d && $a != $c && $a != $d && $b != $d){\n                        foreach($opes as $ope){\n                            $op = explode(\" \",$ope);\n                            $math = sprintf($temp,$data_ary[$d],$op[0],$data_ary[$c],$op[1],$data_ary[$b],$op[2],$data_ary[$a]);\n                            eval('$ans = '.$math.';');\n                            if($ans == 10){\n                                echo \"(\".$math.\")\\n\";\n                                return true;\n                            }\n                        }\n                    }\n                }            \n            }\n        }\n    }\n    return false;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "ho",
+        "input": "Scrivi una funzione php chiamata 'ho' con argomenti: echo $",
+        "output": "hoecho $ sec;\n    } else {\n        echo 'NA';\n    }\n    echo PHP_EOL;\n}\n \nfclose($file_handle);"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "条件不",
+        "input": "Scrivi una funzione php chiamata '条件不' con argomenti: 要",
+        "output": "条件不要 //現在の島を探索済みにする\n    $flag[$cur['node']] = 1;\n     \n    $childnode = childnode($cur['node']);\n    if (empty( $childnode )) return;\n    foreach ($childnode as $island_num => $distance) {\n    \tif ( $flag[$island_num] === 1 ) continue;\n        $grandchildnode = childnode($island_num);\n        if (!empty($grandchildnode)) {\n            $new['node'] = $island_num;\n            $new['dist'] = $cur['dist'] + $dist[$cur['node']][$new['node']];\n            dfs($new);\n        } else {\n            $leaf[$cur['node']] = $cur['dist'];     //ここが葉の親ならば\n            $dist[$cur['node']][$island_num] = 0;   //バグの修正。孫ノードが存在しない橋への距離を０に。\n            $dist[$island_num][$cur['node']] = 0;   //バグの修正。孫ノードが存在しない橋への距離を０に。\n        }\n    }\n}\n \n//子ノード抽出\nfunction childnode($island){\n    global $dist;\n    global $flag;\n   //未探索のみ子ノードとして取り出す\n   $childnode = array();\n   if (!empty($dist[$island])){\n       foreach ($dist[$island] as $key => $val){\n           if ($flag[$key] !== 1) {\n               $childnode[$"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "期化",
+        "input": "Scrivi una funzione php chiamata '期化' con argomenti: ()",
+        "output": "期化() $dist = array();\n    $leaf = array();    //$leaf[葉の親のnum] = 根からの距離\n    $flag = array();\t//探索済みかどうか\n \n    //ファイル読み込み\n    $stdin = fscanf($file_handle, '%d');    //fscanf()で読み込んだものは配列として格納される\n    $n = $stdin[0];\n    //終了条件\n    if ($n == 0){\n        break;\n    }\n     \n    for ($i=0; $i < $n-1; $i++){\n        $info = fscanf($file_handle, '%d %d %d');\n        $parent = $info[0]; $child = $info[1]; $distance = $info[2];\n        $dist[$parent][$child] = $distance;\n        $dist"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "条件不",
+        "input": "Scrivi una funzione php chiamata '条件不' con argomenti: 要",
+        "output": "条件不要 $childnode = childnode($cur['node']);\n    if (empty( $childnode )) return;\n    foreach ($childnode as $island_num => $distance) {\n    \tif ( $flag[$island_num] === 1 ) continue;\n        $grandchildnode = childnode($island_num);\n        if (!empty($grandchildnode)) {\n            $new['node'] = $island_num;\n            $new['dist'] = $cur['dist'] + $dist[$cur['node']][$new['node']];\n            $flag[$island_num] = 1;\n            dfs($new);\n        } else {\n            $leaf[$cur['node']] = $cur['dist'];     //ここが葉の親ならば\n            $dist[$cur['node']][$island_num] = 0;   //バグの修正。孫ノードが存在しない橋への距離を０に。\n            $dist[$island_num][$cur['node']] = 0;   //バグの修正。孫ノードが存在しない橋への距離を０に。\n        }\n    }\n}\n \n//子ノード抽出\nfunction childnode($island){\n    global $dist;\n    global $flag;\n   //未探索のみ子ノードとして取り出す\n   $childnode = array();\n   if (!empty($dist[$island])){\n       foreach ($dist[$island] as $key => $val){\n           if ($flag[$key] !== 1) {"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "whil",
+        "input": "Scrivi una funzione php chiamata 'whil' con argomenti: e",
+        "output": "while (1){\n    //変数の初期化\n    $dist = array();\n    $leaf = array();    //$leaf[葉の親のnum] = 根からの距離\n    $flag = array();\t//探索済みかどうか\n \n    //ファイル読み込み\n    $stdin = fscanf($file_handle, '%d');    //fscanf()で読み込んだものは配列として格納される\n    $n = $stdin[0];\n    //終了条件\n    if ($n == 0){\n        break;\n    }\n     \n    for ($i=0; $i < $n-1; $i++){\n        $info = fscanf($file_handle, '%d %d %d');\n        $parent = $info[0]; $child = $info[1]; $distance ="
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "str_spli",
+        "input": "Scrivi una funzione php chiamata 'str_spli' con argomenti: t($std",
+        "output": "str_split($std in);\n\t\n\n\t//探索\n\twfs();\n\n\t//出力\n\tif ($goal_flag === 1){\n\t\techo $sec;\n\t} else {\n\t\techo 'NA';\n\t}\n\techo PHP_EOL;\n}\n\nfclose($file_handle);"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "if",
+        "input": "Scrivi una funzione php chiamata 'if' con argomenti: ($",
+        "output": "if($ nt >= count($tokens)) {\n\t\t\tbreak;\n\t\t}\n\t\t$next = $tokens[$cnt];\n\t\tif ($next === '*' || $next === '/') {\n\t\t\t$cnt++;\n\t\t\t$node = new Node($next, $node, factor());\n\t\t} else {\n\t\t\tbreak;\n\t\t}\n\t}\n\treturn $node;\n}\n\nfunction factor() {\n\tglobal $variables, $tokens, $cnt;\n\n\t$next = $to"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Employee",
+        "input": "Scrivi una funzione php chiamata 'Employee' con argomenti: ($id, $sales)",
+        "output": "Employee($id, $sales) {\n                $this->_id = $id;\n                $this->_sales = $sales;\n            }"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "swap",
+        "input": "Scrivi una funzione php chiamata 'swap' con argomenti: ($a,$pos,$offset)",
+        "output": "swap($a,$pos,$offset) {\n\t$wk=$a[$pos];\n\t$a[$pos]=$a[$pos+$offset];\n\t$a[$pos+$offset]=$wk;\n\treturn($a);\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "prepare",
+        "input": "Scrivi una funzione php chiamata 'prepare' con argomenti: ($a,$te,$pos)",
+        "output": "prepare($a,$te,$pos) { \n   global $tesuu;\n\n   //echo implode($a).\": $te \\n\";\n   if($te>40)\n     return;\n   //$pos=search_zero($a); \n   if(($pos % 4) < 3) \n     {\t \n       $b=$a;\n       $b=swap($b,$pos,1);\n       $mystring=implode($b);\t\n       if(empty($tesuu[$mystring]) || \n\t  $tesuu[$mystring] > $te)\n\t    {\n\t      $tesuu[$mystring] = $te+1;\t\n\t      prepare($b,$te+1,$pos+1);\n\t    }\n     }\n   \n   if(($pos % 4) > 0)\n     {\t\n       $b=$a;\n       $b=swap($b,$pos,-1);\n       $mystring=implode($b);\t\n       if(empty($tesuu[$mystring]) || \n\t  $tesuu[$mystring] > $te)\n\t {\n\t   $tesuu[$mystring] = $te+1;\n\t   prepare($b,$te+1,$pos-1);\n\t }\n     }\t\t\n   if($pos > 3)\n     {\t\n       $b=$a;\n       $b=swap($b,$pos,-4);\n       $mystring=implode($b);\t\n       if(empty($tesuu[$mystring]) || \n\t       $tesuu[$mystring] > $te)\n\t {\n\t   $tesuu[$mystring] = $te+1;\n\t   prepare($b,$te+1,$pos-4);\n\t }\n     }\t\t\n   if($pos < 4)\n     {\t\n       $b=$a;\n       $b=swap($b,$pos,4);\n       $mystring=implode($b);\t\n       if(empty($tesuu[$mystring]) || \n\t  $tesuu[$mystring] > $te)\n\t {\n\t   $tesuu[$mystring] = $te+1;\n\t   prepare($b,$te+1,$pos+4);\n\t }\n     }\n }"
+    },
+    {
+        "task_type": "class_extraction",
+        "language": "php",
+        "func_name": "Item",
+        "input": "Scrivi una funzione php chiamata 'Item' con argomenti: ( $name , $price )",
+        "output": "Item( $name , $price ) {\n\t\t$this->name  = $name;\n\t\t$this->price = intval($price);\n\t\t$this->minimumPrice = intval($price);\n\t}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "bomber",
+        "input": "Scrivi una funzione php chiamata 'bomber' con argomenti: ($data, $x, $y)",
+        "output": "bomber($data, $x, $y) {\n\tif($x > 0 && $y > 0 && $x < 9 && $y < 9 && $data[$y][$x] > 0){\n\t\t// ??????\n\t\t$data[$y][$x] = 0;\n\n\t\t// ?????????????????????????????????\n\t\tfor($i = 1; $i <= 3; $i++){\n\t\t\t$data = bomber($data, $x-$i, $y);\n\t\t\t$data = bomber($data, $x+$i, $y);\n\t\t\t$data = bomber($data, $x, $y-$i);\n\t\t\t$data = bomber($data, $x, $y+$i);\n\t\t}\n\n\t}\n\n\treturn $data;\n}"
+    },
+    {
+        "task_type": "code_generation",
+        "language": "php",
+        "func_name": "search",
+        "input": "Scrivi una funzione php chiamata 'search' con argomenti: ($x, $y, &$mp, &$visited)",
+        "output": "search($x, $y, &$mp, &$visited) {\n    global $vectors;\n    foreach ($vectors as $vector) {\n        list($dx, $dy) = $vector;\n        $nx = $x + $dx;\n        $ny = $y + $dy;\n        if ((0 <= $nx and $nx < 12 and 0 <= $ny and $ny < 12) and ($mp[$ny][$nx] === \"1\" and !$visited[$ny][$nx])) {\n            $visited[$ny][$nx] = true;\n            search($nx, $ny, $mp, $visited);\n        }\n    }\n}"
+    }
+]

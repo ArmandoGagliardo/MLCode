@@ -50,11 +50,44 @@ REPOS = [
     "pyca/cryptography",
     "sqlalchemy/sqlalchemy",
     "python/cpython",
-    "huggingface/transformers"
+    "huggingface/transformers",
+    # c++
+    "electron/electron",               # C++ + JS (molto vasto)
+    "opencv/opencv",                   # Libreria di visione artificiale
+    "TheCherno/Hazel",                 # Motore grafico
+    "fmtlib/fmt",                      # Libreria per formattazione
+    "google/googletest",               # Libreria testing
+    "swoole/swoole-src",                # Estensione PHP in C++
+    # php
+    "laravel/framework",               # Il framework PHP più famoso
+    "symfony/symfony",                 # Alternativa enterprise
+    "fzaninotto/Faker",                # Generatore di dati fake
+    "guzzle/guzzle",                   # Client HTTP
+    "php/php-src",                     # Sorgente del linguaggio
+    "barryvdh/laravel-debugbar",       # Debug per Laravel
+    # ruby
+    "rails/rails",                     # Web framework
+    "jekyll/jekyll",                   # Generatore di siti statici
+    "rubocop/rubocop",                 # Linter/formatter
+    "Homebrew/brew",                   # Gestore pacchetti
+    "discourse/discourse",            # Forum software
+    "fastlane/fastlane",               # DevOps per mobile
+    # go
+    "golang/go",                       # Il linguaggio stesso
+    "gin-gonic/gin",                   # Web framework
+    "spf13/cobra",                     # CLI framework
+    "harness/drone",                   # CI/CD in Go
+    "goharbor/harbor",                # Registry container
+    "go-kit/kit"                       # Toolkit microservizi
+
 ]
 
 GITHUB_API = "https://api.github.com/repos"
-HEADERS = {"Accept": "application/vnd.github.v3.raw"}
+HEADERS = {
+    "Accept": "application/vnd.github.v3.raw",
+    "Authorization": "token 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",
+    "User-Agent": "github-crawler"
+}
 
 def save_raw_file(repo, path, content):
     """Salva il file sorgente grezzo localmente."""
@@ -107,12 +140,9 @@ def crawl():
     if OUTPUT_FILE.exists():
         with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
             dataset = json.load(f)
-
             for item in dataset:
                 h = hashlib.sha256((item["input"] + item["output"]).encode("utf-8")).hexdigest()
                 existing_hashes.add(h)
-
-
     for repo in tqdm(REPOS, desc="🔍 Scansione repository"):
         print(f"\n📁 {repo}")
         files = get_files(repo)

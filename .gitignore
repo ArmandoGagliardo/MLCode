@@ -2,6 +2,7 @@
 .venv/
 env/
 venv/
+.venv311/
 
 # 👉 File temporanei / di sistema
 __pycache__/
@@ -30,6 +31,12 @@ dataset/*.csv
 outputs/
 runs/
 raw/
+data/
+OUTPUT_FOLDER/
+vendor/
+build/
+legacy/
+Extractor/
 
 # 👉 File Jupyter notebook temporanei
 .ipynb_checkpoints/

@@ -1,16 +1,16 @@
-from .base_parser import BaseParser
 import re
+from .base_parser import BaseParser
 
-class GoParser(BaseParser):
+class RubyParser(BaseParser):
     """
-    Parser per file Go (Golang).
-    Estrae le funzioni pubbliche e private, con eventuali commenti sopra la dichiarazione.
-    Crea oggetti compatibili con il formato del dataset (input → output).
+    Parser per file Ruby (.rb).
+    Estrae le definizioni di metodi, opzionalmente preceduti da commenti.
+    Restituisce dizionari formattati per code generation.
     """
 
     def parse(self, code: str):
-        pattern = r"(?:\/\/(.*?)\n)?func\s+(?:\([\w\s\*]*\)\s+)?(\w+)\s*\((.*?)\)\s*\{"
-        matches = re.finditer(pattern, code, re.DOTALL)
+        pattern = r"(?:#(.*?)\n)?def\s+(\w+)\s*(\([^\)]*\))?"
+        matches = re.finditer(pattern, code)
 
         results = []
         for match in matches:
@@ -19,14 +19,13 @@ class GoParser(BaseParser):
             func_code = self._extract_full_function(code[start:])
 
             doc_clean = self._clean_docstring(comment)
-            prompt = doc_clean.strip()
+            prompt = doc_clean.stript()
 
             if not prompt:
                 prompt = doc_clean if doc_clean else f"Scrivi una funzione C++ chiamata '{name}' con argomenti: {args.strip()}"
-                
             results.append({
                 "task_type": "code_generation",
-                "language": "go",
+                "language": "ruby",
                 "func_name": name,
                 "input": prompt.strip(),
                 "output": func_code.strip()
@@ -35,21 +34,21 @@ class GoParser(BaseParser):
         return results
 
     def _extract_full_function(self, code_segment):
-        # Estrae la funzione completa basandosi sulle parentesi
+        # Estende fino alla fine del metodo (identifica il primo 'end')
+        lines = code_segment.splitlines()
         count = 0
-        end = 0
-        for i, c in enumerate(code_segment):
-            if c == '{':
+        end_idx = 0
+        for i, line in enumerate(lines):
+            if re.search(r'\bdef\b', line):
                 count += 1
-            elif c == '}':
+            elif re.search(r'\bend\b', line):
                 count -= 1
-            if count == 0 and i > 0:
-                end = i
-                break
-        return code_segment[:end+1].strip()
+                if count == 0:
+                    end_idx = i
+                    break
+        return "\n".join(lines[:end_idx+1])
 
     def _clean_docstring(self, comment):
         if not comment:
             return ""
-        # Rimuove doppie barre e spazi
-        return comment.strip().lstrip("/").strip()
+        return comment.strip().lstrip("#").strip()
