@@ -153,7 +153,7 @@ def crawl_website():
         "festival di Sanremo", "scuola", "università", "istruzione", "giornalismo", "libri", "arte contemporanea"
     ]
 
-    searcher = WebsiteSearcher("https://www.ansa.it/","ansa.it")
+    searcher = WebsiteSearcher("https://www.repubblica.it/","repubblica.it")
     crawler = WebTextCrawler(searcher=searcher, max_pages=100)
     crawler.crawl(search_terms)
 

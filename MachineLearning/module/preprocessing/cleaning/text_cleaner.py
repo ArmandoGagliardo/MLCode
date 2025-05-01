@@ -2,12 +2,39 @@
 import os
 import re
 from pathlib import Path
+import unicodedata
+from module.scripts.duplicate_manager import DuplicateManager
 
 class TextCleaner:
-    def __init__(self, min_sentence_length=30, min_block_length=200, clean_wiki_markup=False):
+    def __init__(self, min_sentence_length=30, min_block_length=200, clean_wiki_markup=False,cleaned_dir:Path = Path("data/dataset_italiano/cleaned")):
         self.min_sentence_length = min_sentence_length
         self.min_block_length = min_block_length
         self.clean_wiki_markup = clean_wiki_markup
+        self.cleaned_dir = cleaned_dir
+        self.duplicate_manager = DuplicateManager(cleaned_dir)
+
+    def _normalize_content(self,content):
+        """
+        Normalizza il contenuto:
+        - converte in minuscolo
+        - rimuove accenti (è → e)
+        - rimuove punteggiatura e caratteri speciali
+        - normalizza spazi multipli
+        """
+        # Minuscolo
+        content = content.lower()
+
+        # Rimuove accenti
+        content = unicodedata.normalize('NFD', content)
+        content = ''.join(c for c in content if unicodedata.category(c) != 'Mn')
+
+        # Rimuove tutto ciò che non è alfanumerico o spazio
+        content = re.sub(r'[^\w\s]', '', content)
+
+        # Normalizza spazi multipli
+        content = re.sub(r'\s+', ' ', content).strip()
+    
+        return content
 
     def clean_text(self, text):
         if self.clean_wiki_markup:
@@ -16,9 +43,6 @@ class TextCleaner:
         text = re.sub(r'\s+', ' ', text)
         return text.strip()
 
-    #def split_sentences(self, text):
-       #sentences = re.split(r'(?<=[.!?])\s+', text)
-        #return [s.strip() for s in sentences if s.strip()]
     def split_sentences(self, text):
         raw_sentences = re.split(r'(?<=[.!?])\s+', text)
         sentences = []
@@ -46,15 +70,38 @@ class TextCleaner:
 
         return [s.strip() for s in sentences if len(s.strip()) >= self.min_sentence_length]
     
-    def process_file(self, filepath: Path, domain: str = None):
-        with open(filepath, 'r', encoding='utf-8') as f:
+    def _save_segment(self,buffer,segment_index,raw_path_file:Path = None):
+
+        if not buffer.strip():
+            return 
+        
+        clean_file = self.cleaned_dir / (raw_path_file.stem + f"_part_{segment_index}.txt")
+
+        normalized_buffer = self._normalize_content(buffer.strip())
+
+        if self.duplicate_manager.is_duplicate_path(clean_file) or self.duplicate_manager.is_duplicate_content(normalized_buffer):
+            print(f"[SKIP] Il file {clean_file} o il contenuto {normalized_buffer[:50]} è duplicato e non verrà scritto.")
+            return clean_file
+
+
+        with open(clean_file, 'w', encoding='utf-8') as f_out:
+            f_out.write(normalized_buffer)
+            
+        self.duplicate_manager.register_content(normalized_buffer)
+        self.duplicate_manager.register_path(clean_file)
+        self.segments.append(clean_file)
+        
+    def process_file(self, raw_path_file: Path, domain: str = None):
+
+
+        with open(raw_path_file, 'r', encoding='utf-8') as f: # Legge il file raw 
             raw_lines = f.readlines()
 
         buffer = ""
-        segments = []
+        self.segments = []
         count = 0
-        cleaned_dir = Path("data/dataset_italiano/cleaned")
-        os.makedirs(cleaned_dir, exist_ok=True)
+        
+        os.makedirs(self.cleaned_dir, exist_ok=True)
 
         for line in raw_lines:
             line = line.strip()
@@ -79,20 +126,14 @@ class TextCleaner:
                     buffer += sentence + " "
 
             if len(buffer) >= self.min_block_length:
-                clean_file = cleaned_dir / (filepath.stem + f"_part_{count}.txt")
-                with open(clean_file, 'w', encoding='utf-8') as f_out:
-                    f_out.write(buffer.strip())
-                segments.append(clean_file)
+
+                self._save_segment(buffer, count,raw_path_file)
                 buffer = ""
                 count += 1
 
-        if buffer.strip():
-            clean_file = cleaned_dir / (filepath.stem + f"_part_{count}.txt")
-            with open(clean_file, 'w', encoding='utf-8') as f_out:
-                f_out.write(buffer.strip())
-            segments.append(clean_file)
+        self._save_segment(buffer, count,raw_path_file) # Salva l'ultimo buffer se non vuoto
 
-        return segments
+        return self.segments
 
     def _clean_wikipedia_markup(self, text: str) -> str:
         print("🧹 Pulizia del testo Wikipedia...")
