@@ -5,13 +5,26 @@ from pathlib import Path
 from module.preprocessing.parser_manager import get_parser
 from tqdm import tqdm
 import hashlib
+import sys
+
+# Import configuration
+try:
+    from config import (
+        DATASET_PATH,
+        RAW_DATA_PATH,
+        MAX_FILES_PER_REPO,
+        get_github_headers
+    )
+except ImportError:
+    print("Error: config.py not found. Please ensure config.py exists in the project root.")
+    sys.exit(1)
+
 # ======== CONFIG ========
-OUTPUT_DIR = Path("dataset")
+OUTPUT_DIR = DATASET_PATH
 OUTPUT_DIR.mkdir(exist_ok=True)
-RAW_DIR = OUTPUT_DIR / "raw"
+RAW_DIR = RAW_DATA_PATH
 RAW_DIR.mkdir(exist_ok=True)
 OUTPUT_FILE = OUTPUT_DIR / "dataset_github.json"
-MAX_FILES_PER_REPO = 20
 BRANCH = "main"
 
 # Supportati
@@ -35,7 +48,7 @@ REPOS = [
     "elastic/elasticsearch",
     # Shell
     "ohmyzsh/ohmyzsh",
-    #python 
+    #python
     "psf/requests",
     "pallets/flask",
     "tiangolo/fastapi",
@@ -78,16 +91,43 @@ REPOS = [
     "spf13/cobra",                     # CLI framework
     "harness/drone",                   # CI/CD in Go
     "goharbor/harbor",                # Registry container
-    "go-kit/kit"                       # Toolkit microservizi
-
+    "go-kit/kit",                      # Toolkit microservizi
 ]
 
+# Security-focused repositories (vulnerable apps & security tools)
+SECURITY_REPOS = [
+    # Intentionally vulnerable applications
+    "OWASP/PyGoat",                    # Python vulnerable app
+    "juice-shop/juice-shop",           # JavaScript/Node.js vulnerable app
+    "OWASP/NodeGoat",                  # Node.js vulnerable app
+    "digininja/DVWA",                  # PHP vulnerable app (Damn Vulnerable Web App)
+    "webpwnized/mutillidae",           # PHP vulnerable app
+    "WebGoat/WebGoat",                 # Java vulnerable app
+    "OWASP/railsgoat",                 # Ruby vulnerable app
+
+    # Security tools (for pattern learning)
+    "PyCQA/bandit",                    # Python security linter
+    "pyupio/safety-db",                # Python known vulnerabilities
+    "returntocorp/semgrep",            # Multi-language security scanner
+    "trailofbits/algo",                # VPN security
+
+    # OWASP resources
+    "OWASP/CheatSheetSeries",          # Security best practices
+    "OWASP/ASVS",                      # Application Security Verification Standard
+]
+
+# Combined list for crawling
+ALL_REPOS = REPOS + SECURITY_REPOS
+
 GITHUB_API = "https://api.github.com/repos"
-HEADERS = {
-    "Accept": "application/vnd.github.v3.raw",
-    "Authorization": "token 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",
-    "User-Agent": "github-crawler"
-}
+
+# Get headers with token from environment
+try:
+    HEADERS = get_github_headers()
+except ValueError as e:
+    print(f"Error: {e}")
+    print("Please create a .env file with your GITHUB_TOKEN. See .env.example for template.")
+    sys.exit(1)
 
 def save_raw_file(repo, path, content):
     """Salva il file sorgente grezzo localmente."""
@@ -102,9 +142,9 @@ def get_files(repo):
     """Recupera la lista dei file sorgente compatibili da un repo."""
     files = []
     url = f"{GITHUB_API}/{repo}/git/trees/{BRANCH}?recursive=1"
-    res = requests.get(url)
+    res = requests.get(url, headers=HEADERS)
     if res.status_code != 200:
-        print(f"⚠️ Impossibile accedere a {repo}")
+        print(f"⚠️ Impossibile accedere a {repo} (status: {res.status_code})")
         return []
     data = res.json()
     for item in data.get("tree", []):
@@ -143,7 +183,7 @@ def crawl():
             for item in dataset:
                 h = hashlib.sha256((item["input"] + item["output"]).encode("utf-8")).hexdigest()
                 existing_hashes.add(h)
-    for repo in tqdm(REPOS, desc="🔍 Scansione repository"):
+    for repo in tqdm(ALL_REPOS, desc="🔍 Scansione repository"):
         print(f"\n📁 {repo}")
         files = get_files(repo)
         for path in files:

@@ -2,13 +2,36 @@ import os
 import sys
 import argparse
 import subprocess
+import logging
 from pathlib import Path
 
 # 📌 PATH BASE
 BASE_PATH = Path(__file__).resolve().parent
 sys.path.append(str(BASE_PATH))
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler(BASE_PATH / 'ml_system.log')
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Load configuration
+try:
+    from config import validate_config, CUDA_VISIBLE_DEVICES, PYTORCH_CUDA_ALLOC_CONF
+    validate_config()
+    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = PYTORCH_CUDA_ALLOC_CONF
+    os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
+    logger.info(f"Configuration loaded successfully")
+except Exception as e:
+    logger.error(f"Configuration error: {e}")
+    print(f"Error loading configuration: {e}")
+    print("Please ensure config.py exists and .env is properly configured.")
+    sys.exit(1)
 
 # 📁 CREAZIONE STRUTTURA
 def ensure_directories():
@@ -20,47 +43,50 @@ def ensure_directories():
 
 # 🧠 TRAINING
 def train(task):
+    logger.info(f"Starting training for task: {task}")
     from module.model.model_manager import ModelManager
+    from config import MODEL_PATHS, DEFAULT_BATCH_SIZE, DEFAULT_EPOCHS, DEFAULT_LEARNING_RATE
 
-    paths = {
-        "code_generation": ("Salesforce/codet5-base", "dataset/dataset_migrated.json"),
-        "text_classification": ("microsoft/codebert-base", "dataset/dataset_classification_v2.json"),
-        "security_classification": ("microsoft/codebert-base", "dataset/dataset_security.json"),
-        "text_generation": ("gpt2", "dataset/dataset_text_gen.json")
-    }
+    if task not in MODEL_PATHS:
+        logger.error(f"Unknown task: {task}")
+        print(f"Error: Unknown task '{task}'. Available tasks: {list(MODEL_PATHS.keys())}")
+        return
 
-    model_name, dataset_path = paths[task]
+    model_name, dataset_path = MODEL_PATHS[task]
+    logger.info(f"Using model: {model_name}, dataset: {dataset_path}")
 
     # Istanzia il model manager generico (gestisce loading e salvataggio modello/tokenizer)
     model_manager = ModelManager(task=task, model_name=model_name)
 
     # Usa Trainer custom per generazione o sicurezza
     if task in ["code_generation", "security_classification"]:
-        print("🚀 Addestramento con TrainingModel (custom)...")
+        logger.info("Using AdvancedTrainer for training...")
         from module.model.training_model_advanced import AdvancedTrainer
         trainer = AdvancedTrainer(model_manager, use_gpu=False)
 
         trainer.train_model(
             dataset_path=dataset_path,
             model_save_path=f"models/{task}",
-            batch_size=4,
-            num_epochs=4,
-            learning_rate=5e-5,
+            batch_size=DEFAULT_BATCH_SIZE,
+            num_epochs=DEFAULT_EPOCHS,
+            learning_rate=DEFAULT_LEARNING_RATE,
             remove_labes=["task_type", "language", "func_name", "input", "output"]
         )
-    
+
     # Altrimenti usa il trainer HuggingFace
     else:
+        logger.info("Using AdvancedTrainerClassifier for training...")
         from module.model.advanced_trainer_classifier import AdvancedTrainerClassifier
-        print("🚀 Addestramento con HuggingFace Trainer...")
         trainer = AdvancedTrainerClassifier(model_manager)
         trainer.train_model(
             dataset_path=dataset_path,
             model_save_path=f"models/{task}",
-            batch_size=4,
-            num_epochs=4,
-            learning_rate=5e-5,
+            batch_size=DEFAULT_BATCH_SIZE,
+            num_epochs=DEFAULT_EPOCHS,
+            learning_rate=DEFAULT_LEARNING_RATE,
         )
+
+    logger.info(f"Training completed for task: {task}")
 
 # 🧪 VALIDAZIONE DATASET
 def validate():
@@ -92,17 +118,35 @@ def run_pipeline():
         print(f"✅ Risultato: {result}\n")
 
 def crawl_github():
+    logger.info("Starting GitHub crawl...")
     from MachineLearning.module.preprocessing.github_crawler import crawl
-    crawl()
+    try:
+        crawl()
+        logger.info("GitHub crawl completed successfully")
+    except Exception as e:
+        logger.error(f"GitHub crawl failed: {e}", exc_info=True)
+        raise
 
 def crawl_local():
+    logger.info("Starting local folder crawl...")
     from MachineLearning.module.preprocessing.local_folder_crawler import LocalFolderCrawler
-    local_crawler = LocalFolderCrawler(folder_path="models/_classification_/train/", max_files=100)
-    local_crawler.crawl()
+    try:
+        local_crawler = LocalFolderCrawler(folder_path="models/_classification_/train/", max_files=100)
+        local_crawler.crawl()
+        logger.info("Local folder crawl completed successfully")
+    except Exception as e:
+        logger.error(f"Local folder crawl failed: {e}", exc_info=True)
+        raise
 
 def crawl_text():
+    logger.info("Starting text crawl...")
     from MachineLearning.module.preprocessing.text_crawler import crawl_text_dataset
-    crawl_text_dataset()
+    try:
+        crawl_text_dataset()
+        logger.info("Text crawl completed successfully")
+    except Exception as e:
+        logger.error(f"Text crawl failed: {e}", exc_info=True)
+        raise
 
 def crawl_web():
         from module.preprocessing.web_text_crawler import WebTextCrawler
@@ -157,6 +201,78 @@ def crawl_website():
     crawler = WebTextCrawler(searcher=searcher, max_pages=100)
     crawler.crawl(search_terms)
 
+# 🔐 SECURITY SCANNING
+def security_scan(target, scan_type='quick', output_format='text', verbose=False):
+    """
+    Security vulnerability scanner
+
+    Args:
+        target: File or directory to scan
+        scan_type: 'quick' (pattern-based) or 'full' (pattern + ML)
+        output_format: 'text', 'json', or 'html'
+        verbose: Show detailed information
+    """
+    logger.info(f"Starting security scan on: {target}")
+    from module.security.pattern_detector import PatternBasedDetector
+    from pathlib import Path
+
+    detector = PatternBasedDetector()
+    target_path = Path(target)
+
+    print(f"\n🔍 Security Scan Started")
+    print(f"Target: {target}")
+    print(f"Scan Type: {scan_type.upper()}")
+    print("=" * 80)
+
+    # Scan file or directory
+    if target_path.is_file():
+        vulnerabilities = detector.scan_file(str(target_path))
+        files_scanned = 1
+    elif target_path.is_dir():
+        print(f"\n📁 Scanning directory recursively...")
+        results = detector.scan_directory(str(target_path), recursive=True)
+        vulnerabilities = []
+        for file_path, vulns in results.items():
+            vulnerabilities.extend(vulns)
+        files_scanned = len(results)
+    else:
+        print(f"❌ Error: {target} not found")
+        return
+
+    # Output results
+    if output_format == 'text':
+        print(detector.format_report(vulnerabilities, verbose=verbose))
+
+        # Statistics
+        stats = detector.get_statistics()
+        print(f"\n📊 Scan Statistics:")
+        print(f"   Files Scanned: {files_scanned}")
+        print(f"   Vulnerabilities Found: {len(vulnerabilities)}")
+
+        if vulnerabilities:
+            print(f"\n⚠️  Action Required: Review and fix {len(vulnerabilities)} vulnerabilities")
+
+            critical_high = sum(1 for v in vulnerabilities if v['severity'] in ['CRITICAL', 'HIGH'])
+            if critical_high > 0:
+                print(f"   🔴 {critical_high} CRITICAL/HIGH severity issues need immediate attention!")
+
+    elif output_format == 'json':
+        import json
+        output_file = 'security_report.json'
+        with open(output_file, 'w') as f:
+            json.dump({
+                'target': str(target),
+                'files_scanned': files_scanned,
+                'vulnerabilities': vulnerabilities,
+                'stats': detector.get_statistics()
+            }, f, indent=2)
+        print(f"\n✅ Report saved to: {output_file}")
+
+    elif output_format == 'html':
+        print("\n⚠️  HTML output not yet implemented. Use 'text' or 'json'.")
+
+    logger.info(f"Security scan completed. Found {len(vulnerabilities)} vulnerabilities")
+
 # 🎯 AVVIO
 if __name__ == "__main__":
 
@@ -173,6 +289,17 @@ if __name__ == "__main__":
     parser.add_argument("--crawl_web", action="store_true")
     parser.add_argument("--crawl_wiki", action="store_true")
     parser.add_argument("--crawl_website", action="store_true")
+
+    # Security scanning arguments
+    parser.add_argument("--security-scan", type=str, metavar="TARGET",
+                       help="Scan file or directory for security vulnerabilities")
+    parser.add_argument("--scan-type", choices=["quick", "full"], default="quick",
+                       help="Scan type: quick (pattern-based) or full (pattern + ML)")
+    parser.add_argument("--output", choices=["text", "json", "html"], default="text",
+                       help="Output format for security report")
+    parser.add_argument("--verbose", action="store_true",
+                       help="Show detailed vulnerability information")
+
     args = parser.parse_args()
 
     if args.train:
@@ -183,6 +310,8 @@ if __name__ == "__main__":
         run_ui()
     elif args.pipeline:
         run_pipeline()
+    elif args.security_scan:
+        security_scan(args.security_scan, args.scan_type, args.output, args.verbose)
     elif args.crawl_git:
         crawl_github()
     elif args.crawl_local:

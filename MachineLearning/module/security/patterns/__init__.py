@@ -1,0 +1,1 @@
+# Security patterns module
