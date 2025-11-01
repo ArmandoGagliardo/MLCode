@@ -95,7 +95,51 @@ def validate():
 
 # 🖥️ STREAMLIT UI
 def run_ui():
-    subprocess.run(["streamlit", "run", str(BASE_PATH / "module/ui/app.py"), "--server.runOnSave=False" ])
+    try:
+        import streamlit
+        logger.info("Avvio dell'interfaccia Streamlit...")
+        
+        app_path = BASE_PATH / "module/ui/app.py"
+        if not app_path.exists():
+            logger.error(f"File UI non trovato: {app_path}")
+            print(f"❌ Errore: File UI non trovato in {app_path}")
+            return
+
+        print("\n🚀 Avvio dell'interfaccia web...")
+        print("ℹ️ L'interfaccia sarà disponibile su: http://localhost:8501")
+        print("ℹ️ Premi Ctrl+C per terminare l'applicazione")
+        
+        import subprocess
+        import signal
+        
+        def handle_shutdown(signum, frame):
+            """Handle shutdown signals gracefully"""
+            logger.info("Arresto dell'applicazione...")
+            print("\n👋 Arresto dell'applicazione in corso...")
+            if 'process' in locals():
+                process.terminate()
+                process.wait()
+            print("✅ Applicazione terminata con successo")
+            sys.exit(0)
+        
+        # Register signal handlers
+        signal.signal(signal.SIGINT, handle_shutdown)
+        signal.signal(signal.SIGTERM, handle_shutdown)
+        
+        try:
+            # Use subprocess instead of os.system for better process management
+            process = subprocess.Popen(['streamlit', 'run', str(app_path), '--server.port=8501'])
+            process.wait()
+        except KeyboardInterrupt:
+            handle_shutdown(None, None)
+        
+    except ImportError:
+        logger.error("Streamlit non trovato")
+        print("\n❌ Streamlit non è installato. Esegui:")
+        print("pip install streamlit")
+    except Exception as e:
+        logger.error(f"Errore: {str(e)}")
+        print(f"\n❌ Errore: {str(e)}")
 
 # 💻 CLI PIPELINE INTERATTIVA
 def run_pipeline():
@@ -119,8 +163,8 @@ def run_pipeline():
 
 def crawl_github():
     logger.info("Starting GitHub crawl...")
-    from MachineLearning.module.preprocessing.github_crawler import crawl
     try:
+        from module.preprocessing.github_crawler import crawl
         crawl()
         logger.info("GitHub crawl completed successfully")
     except Exception as e:
@@ -129,8 +173,8 @@ def crawl_github():
 
 def crawl_local():
     logger.info("Starting local folder crawl...")
-    from MachineLearning.module.preprocessing.local_folder_crawler import LocalFolderCrawler
     try:
+        from module.preprocessing.local_folder_crawler import LocalFolderCrawler
         local_crawler = LocalFolderCrawler(folder_path="models/_classification_/train/", max_files=100)
         local_crawler.crawl()
         logger.info("Local folder crawl completed successfully")
@@ -140,8 +184,8 @@ def crawl_local():
 
 def crawl_text():
     logger.info("Starting text crawl...")
-    from MachineLearning.module.preprocessing.text_crawler import crawl_text_dataset
     try:
+        from module.preprocessing.text_crawler import crawl_text_dataset
         crawl_text_dataset()
         logger.info("Text crawl completed successfully")
     except Exception as e:
