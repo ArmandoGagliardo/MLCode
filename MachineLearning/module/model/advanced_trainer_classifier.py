@@ -19,6 +19,9 @@ Autore:
 
 import torch
 import logging
+
+logger = logging.getLogger(__name__)
+import logging
 from torch.utils.data import DataLoader
 from datasets import load_dataset
 from transformers import get_scheduler
@@ -35,7 +38,23 @@ logging.basicConfig(
 
 
 class AdvancedTrainerClassifier:
-    def __init__(self, model, tokenizer, use_gpu=True):
+    def __init__(self, model_manager):
+        """
+        Inizializza il trainer avanzato per classificazione.
+        
+        Args:
+            model_manager: Istanza di ModelManager che contiene modello e tokenizer
+        """
+        self.tokenizer = model_manager.tokenizer
+        self.model = model_manager.get_model()
+        self.device = model_manager.device
+        
+        if torch.cuda.device_count() > 1:
+            self.model = torch.nn.DataParallel(self.model)
+            logger.info(f"Multi-GPU attivo ({torch.cuda.device_count()} GPU)")
+        
+        logger.info(f"Trainer inizializzato con modello su device: {self.device}")
+        logger.info(f"Tokenizer pronto per l'uso")
         """
         Inizializza il trainer per classificazione.
 
@@ -44,13 +63,9 @@ class AdvancedTrainerClassifier:
             tokenizer (PreTrainedTokenizer): Tokenizer associato.
             use_gpu (bool): Se True usa la GPU se disponibile.
         """
-        self.tokenizer = tokenizer
-        self.model = model
-        self.use_gpu = use_gpu
-        self.device = torch.device("cuda" if torch.cuda.is_available() and use_gpu else "cpu")
         self.model.to(self.device)
 
-        if torch.cuda.device_count() > 1 and self.use_gpu:
+        if torch.cuda.device_count() > 1 and self.device.type == "cuda":
             self.model = torch.nn.DataParallel(self.model)
             print(f"✅ Multi-GPU attivo ({torch.cuda.device_count()} GPU)")
 
@@ -61,19 +76,32 @@ class AdvancedTrainerClassifier:
         Tokenizza un esempio per classificazione.
 
         Args:
-            example (dict): Esempio con 'input' e 'label'.
+            example (dict): Esempio con 'input' e 'output' (label).
 
         Returns:
             dict: input_ids, attention_mask e labels.
         """
-        tokenized = self.tokenizer(
-            example["input"],
-            padding="max_length",
-            truncation=True,
-            max_length=128
-        )
-        tokenized["labels"] = int(example["label"]) if isinstance(example["label"], str) else example["label"]
-        return tokenized
+        try:
+            # Tokenizza il testo di input
+            tokenized = self.tokenizer(
+                example["input"],
+                padding="max_length",
+                truncation=True,
+                max_length=128,
+                return_tensors=None  # Ritorna liste invece che tensori
+            )
+            
+            # Usa 'output' come etichetta
+            label = example.get("output", example.get("label", 0))  # fallback a 'label' o 0
+            tokenized["labels"] = int(label) if isinstance(label, str) else label
+            
+            logger.debug(f"Esempio tokenizzato con successo: input_len={len(tokenized['input_ids'])}, label={tokenized['labels']}")
+            return tokenized
+            
+        except Exception as e:
+            logger.error(f"Errore nella tokenizzazione dell'esempio: {e}")
+            logger.error(f"Esempio problematico: {example}")
+            raise
 
     def collate_fn(self, batch):
         """
@@ -85,22 +113,28 @@ class AdvancedTrainerClassifier:
         Returns:
             dict: input_ids, attention_mask, labels.
         """
-        input_ids = [torch.tensor(x["input_ids"]) for x in batch]
-        attention_mask = [torch.tensor(x["attention_mask"]) for x in batch]
-        labels = [torch.tensor(x["labels"]) for x in batch]
+        # Converti in tensori in modo ottimizzato
+        input_ids = [torch.tensor(x["input_ids"], dtype=torch.long).clone().detach() for x in batch]
+        attention_mask = [torch.tensor(x["attention_mask"], dtype=torch.long).clone().detach() for x in batch]
+        labels = [torch.tensor(x["labels"], dtype=torch.long).clone().detach() for x in batch]
+
+        # Padding e stacking
+        padded_input_ids = pad_sequence(input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id)
+        padded_attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
+        stacked_labels = torch.stack(labels)
 
         return {
-            "input_ids": pad_sequence(input_ids, batch_first=True, padding_value=self.tokenizer.pad_token_id),
-            "attention_mask": pad_sequence(attention_mask, batch_first=True, padding_value=0),
-            "labels": torch.stack(labels)
+            "input_ids": padded_input_ids,
+            "attention_mask": padded_attention_mask,
+            "labels": stacked_labels
         }
 
-    def train(
+    def train_model(
         self,
         dataset_path,
-        output_dir,
-        num_epochs=4,
+        model_save_path,
         batch_size=4,
+        num_epochs=4,
         learning_rate=5e-5,
         accumulation_steps=2,
         early_stopping_patience=2
@@ -130,10 +164,16 @@ class AdvancedTrainerClassifier:
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate)
         scheduler = get_scheduler("linear", optimizer=optimizer, num_warmup_steps=0,
                                   num_training_steps=num_epochs * len(train_loader))
-        scaler = torch.amp.GradScaler()
-
+        
+        # Inizializza GradScaler solo se CUDA è disponibile
+        use_amp = torch.cuda.is_available()
+        scaler = torch.amp.GradScaler() if use_amp else None
+        
         best_val_loss = float("inf")
         patience_counter = 0
+        
+        logger.info(f"Training config: batch_size={batch_size}, epochs={num_epochs}, lr={learning_rate}")
+        logger.info(f"Using mixed precision: {use_amp}")
 
         print("🚀 Inizio training (classificazione)...")
 
@@ -146,18 +186,27 @@ class AdvancedTrainerClassifier:
             for i, batch in enumerate(train_loader):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
 
-                with torch.autocast(device_type="cuda" if self.device.type == "cuda" else "cpu"):
+                # Context manager per mixed precision training
+                with torch.autocast(device_type="cuda" if use_amp else "cpu", enabled=use_amp):
                     outputs = self.model(**batch)
                     loss = outputs.loss
                     loss = loss.mean() if loss.dim() > 0 else loss
+                    loss = loss / accumulation_steps
 
-                scaler.scale(loss / accumulation_steps).backward()
-
-                if (i + 1) % accumulation_steps == 0 or (i + 1) == len(train_loader):
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-                    scheduler.step()
+                # Backward pass con o senza GradScaler
+                if use_amp:
+                    scaler.scale(loss).backward()
+                    if (i + 1) % accumulation_steps == 0 or (i + 1) == len(train_loader):
+                        scaler.step(optimizer)
+                        scaler.update()
+                        optimizer.zero_grad()
+                        scheduler.step()
+                else:
+                    loss.backward()
+                    if (i + 1) % accumulation_steps == 0 or (i + 1) == len(train_loader):
+                        optimizer.step()
+                        optimizer.zero_grad()
+                        scheduler.step()
 
                 total_loss += loss.item()
                 progress.update(1)
@@ -170,9 +219,10 @@ class AdvancedTrainerClassifier:
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 patience_counter = 0
-                self.model.module.save_pretrained(output_dir) if isinstance(self.model, torch.nn.DataParallel) else self.model.save_pretrained(output_dir)
-                self.tokenizer.save_pretrained(output_dir)
-                print(f"✅ Miglior modello salvato in {output_dir}")
+                self.model.module.save_pretrained(model_save_path) if isinstance(self.model, torch.nn.DataParallel) else self.model.save_pretrained(model_save_path)
+                self.tokenizer.save_pretrained(model_save_path)
+                logger.info(f"Miglior modello salvato in {model_save_path}")
+                print(f"✅ Miglior modello salvato in {model_save_path}")
             else:
                 patience_counter += 1
                 if patience_counter >= early_stopping_patience:
