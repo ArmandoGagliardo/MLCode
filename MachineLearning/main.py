@@ -20,6 +20,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Controllo dipendenze (solo se non stiamo controllando le dipendenze o mostrando l'help)
+if '--check-deps' not in sys.argv and '--help' not in sys.argv and '-h' not in sys.argv:
+    try:
+        from check_dependencies import check_dependencies
+        deps_ok = check_dependencies(verbose=False, auto_install=False)
+        if not deps_ok:
+            logger.warning("Alcune dipendenze critiche non sono soddisfatte")
+            print("\n⚠️  ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
+            print("   Esegui: python check_dependencies.py --auto-install")
+            print("   Oppure: pip install -r requirements.txt\n")
+            # Non bloccare l'esecuzione, ma avvisa l'utente
+    except ImportError as e:
+        logger.warning(f"Impossibile controllare le dipendenze: {e}")
+    except Exception as e:
+        logger.warning(f"Errore durante il controllo delle dipendenze: {e}")
+
 # Load configuration
 try:
     from config import validate_config, CUDA_VISIBLE_DEVICES, PYTORCH_CUDA_ALLOC_CONF
@@ -317,6 +333,131 @@ def security_scan(target, scan_type='quick', output_format='text', verbose=False
 
     logger.info(f"Security scan completed. Found {len(vulnerabilities)} vulnerabilities")
 
+# ☁️ CLOUD STORAGE MANAGEMENT
+def storage_connect():
+    """Connect to cloud storage provider"""
+    logger.info("Connecting to cloud storage...")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        print("\n✅ Storage connected successfully!")
+
+        # Get storage info
+        info = storage.get_storage_info()
+        print(f"\n📦 Storage Information:")
+        print(f"   Provider: {info.get('provider', 'unknown').upper()}")
+        print(f"   Bucket: {info.get('bucket_name', 'unknown')}")
+        print(f"   Files: {info.get('file_count', 0)}")
+        print(f"   Total Size: {info.get('total_size_mb', 0)} MB")
+        print(f"   Local Dataset Dir: {info.get('local_dataset_dir', 'unknown')}")
+        print(f"   Local Models Dir: {info.get('local_models_dir', 'unknown')}")
+
+        return storage
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+        return None
+
+def storage_download_datasets(force=False):
+    """Download datasets from cloud storage"""
+    logger.info("Downloading datasets from cloud storage...")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        print(f"\n⬇️  Downloading datasets...")
+        stats = storage.download_datasets(force=force)
+
+        print(f"\n✅ Download completed!")
+        print(f"   Downloaded: {stats['downloaded']} files")
+        print(f"   Skipped: {stats['skipped']} files")
+        print(f"   Failed: {stats['failed']} files")
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+
+def storage_upload_datasets(force=False):
+    """Upload datasets to cloud storage"""
+    logger.info("Uploading datasets to cloud storage...")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        print(f"\n⬆️  Uploading datasets...")
+        stats = storage.upload_datasets(force=force)
+
+        print(f"\n✅ Upload completed!")
+        print(f"   Uploaded: {stats['uploaded']} files")
+        print(f"   Skipped: {stats['skipped']} files")
+        print(f"   Failed: {stats['failed']} files")
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+
+def storage_backup_model(model_path, model_name=None):
+    """Backup a trained model to cloud storage"""
+    logger.info(f"Backing up model: {model_path}")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        print(f"\n💾 Backing up model: {model_path}")
+
+        success = storage.backup_model(model_path, model_name=model_name)
+
+        if success:
+            print(f"\n✅ Model backup completed!")
+        else:
+            print(f"\n❌ Model backup failed!")
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+
+def storage_restore_model(model_name, destination=None):
+    """Restore a model from cloud storage"""
+    logger.info(f"Restoring model: {model_name}")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        print(f"\n📥 Restoring model: {model_name}")
+
+        success = storage.restore_model(model_name, destination=destination)
+
+        if success:
+            print(f"\n✅ Model restored successfully!")
+        else:
+            print(f"\n❌ Model restore failed!")
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+
+def storage_list_models():
+    """List all backed up models"""
+    logger.info("Listing backed up models...")
+    from module.storage import StorageManager
+
+    storage = StorageManager()
+
+    if storage.connect():
+        models = storage.list_models()
+
+        if models:
+            print(f"\n📦 Backed up models ({len(models)}):")
+            for model in models:
+                print(f"   - {model}")
+        else:
+            print("\n📦 No backed up models found")
+    else:
+        print("\n❌ Failed to connect to storage")
+        logger.error("Storage connection failed")
+
 # 🎯 AVVIO
 if __name__ == "__main__":
 
@@ -344,9 +485,36 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", action="store_true",
                        help="Show detailed vulnerability information")
 
+    # Cloud storage arguments
+    parser.add_argument("--storage-connect", action="store_true",
+                       help="Connect to cloud storage and show info")
+    parser.add_argument("--storage-download", action="store_true",
+                       help="Download datasets from cloud storage")
+    parser.add_argument("--storage-upload", action="store_true",
+                       help="Upload datasets to cloud storage")
+    parser.add_argument("--storage-backup", type=str, metavar="MODEL_PATH",
+                       help="Backup a model to cloud storage")
+    parser.add_argument("--storage-restore", type=str, metavar="MODEL_NAME",
+                       help="Restore a model from cloud storage")
+    parser.add_argument("--storage-list", action="store_true",
+                       help="List all backed up models")
+    parser.add_argument("--model-name", type=str,
+                       help="Model name for backup/restore operations")
+    parser.add_argument("--force", action="store_true",
+                       help="Force upload/download all files (skip incremental sync)")
+
+    # Dependency checking arguments
+    parser.add_argument("--check-deps", action="store_true",
+                       help="Check Python dependencies")
+    parser.add_argument("--auto-install", action="store_true",
+                       help="Automatically install missing dependencies")
+
     args = parser.parse_args()
 
-    if args.train:
+    if args.check_deps:
+        from check_dependencies import check_dependencies
+        check_dependencies(verbose=args.verbose, auto_install=args.auto_install)
+    elif args.train:
         train(args.train)
     elif args.validate:
         validate()
@@ -356,6 +524,18 @@ if __name__ == "__main__":
         run_pipeline()
     elif args.security_scan:
         security_scan(args.security_scan, args.scan_type, args.output, args.verbose)
+    elif args.storage_connect:
+        storage_connect()
+    elif args.storage_download:
+        storage_download_datasets(force=args.force)
+    elif args.storage_upload:
+        storage_upload_datasets(force=args.force)
+    elif args.storage_backup:
+        storage_backup_model(args.storage_backup, model_name=args.model_name)
+    elif args.storage_restore:
+        storage_restore_model(args.storage_restore, destination=args.model_name)
+    elif args.storage_list:
+        storage_list_models()
     elif args.crawl_git:
         crawl_github()
     elif args.crawl_local:

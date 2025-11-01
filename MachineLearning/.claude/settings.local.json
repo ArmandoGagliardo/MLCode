@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(requirements.txt)",
+      "Bash(python:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

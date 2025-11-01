@@ -45,6 +45,7 @@ htmlcov/
 
 # Data, modelli e output (file pesanti)
 data/
+dataset/
 datasets/
 raw_data/
 processed_data/
@@ -93,3 +94,13 @@ credentials/
 *.tmp
 *.bak
 *.swp
+
+# Client side files
+client/
+legacy/
+
+# Claude files
+.claude/
+
+# .md files
+*.md
