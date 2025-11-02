@@ -513,8 +513,10 @@ class GitHubRepoProcessor:
                 'task_type': task_type,
                 'language': func.get('language'),
                 'func_name': func.get('name', 'unknown'),
-                'input': f"Write a {func.get('language')} function named {func.get('name')}",
-                'output': func.get('body', ''),
+                'input': func.get('input', f"Write a {func.get('language')} function named {func.get('name')}"),
+                'output': func.get('output', func.get('body', '')),  # Use 'output' (signature + body), fallback to 'body'
+                'signature': func.get('signature', ''),  # Include signature field
+                'doc': func.get('doc', ''),  # Include docstring field
                 'repo_url': repo_url,
                 'file_path': func.get('file_path', ''),
                 'extracted_at': func.get('extracted_at', '')

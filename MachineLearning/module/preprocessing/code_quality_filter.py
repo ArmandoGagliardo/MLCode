@@ -127,18 +127,18 @@ class QualityFilter:
         # Count unique tokens (simple heuristic)
         tokens = set(re.findall(r'\b\w+\b', code.lower()))
         
-        # Should have at least 5 unique tokens
-        if len(tokens) < 5:
+        # Should have at least 3 unique tokens (relaxed from 5)
+        if len(tokens) < 3:
             return False
 
-        # Language-specific structure keywords
+        # Language-specific structure keywords (relaxed - include 'return')
         structure_keywords_map = {
-            'python': ['def', 'class', 'if', 'for', 'while', 'try', 'with', 'return', 'yield', 'async', 'await'],
-            'javascript': ['function', 'class', 'if', 'for', 'while', 'try', 'return', 'async', 'await', 'const', 'let'],
+            'python': ['def', 'class', 'if', 'for', 'while', 'try', 'with', 'return', 'yield', 'async', 'await', 'lambda'],
+            'javascript': ['function', 'class', 'if', 'for', 'while', 'try', 'return', 'async', 'await', 'const', 'let', 'var', '=>'],
             'go': ['func', 'if', 'for', 'switch', 'return', 'defer', 'go', 'select', 'range'],
             'rust': ['fn', 'impl', 'if', 'for', 'while', 'match', 'return', 'loop', 'let', 'mut'],
-            'java': ['class', 'if', 'for', 'while', 'try', 'return', 'new', 'void', 'public', 'private'],
-            'cpp': ['class', 'if', 'for', 'while', 'try', 'return', 'new', 'delete', 'void'],
+            'java': ['class', 'if', 'for', 'while', 'try', 'return', 'new', 'void', 'public', 'private', 'protected'],
+            'cpp': ['class', 'if', 'for', 'while', 'try', 'return', 'new', 'delete', 'void', 'int', 'public', 'private'],
             'ruby': ['def', 'class', 'if', 'for', 'while', 'begin', 'return', 'yield', 'end'],
         }
         

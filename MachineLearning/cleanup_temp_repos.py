@@ -61,7 +61,8 @@ class RepoCleanup:
         # Path corretto: stesso path dello storage cloud ma con local_backup
         # Importato da config.py per mantenere coerenza
         self.dataset_dirs = [
-            LOCAL_DATASET_PATH,
+            LOCAL_DATASET_PATH,  # datasets/local_backup/code_generation
+            Path("data/datasets/code_generation"),  # data/datasets/code_generation (scaricati da cloud)
         ]
         
         # Pattern da mantenere (whitelist)
@@ -175,13 +176,15 @@ class RepoCleanup:
         
         return temp_files
     
-    def find_dataset_files(self, old_only: bool = False, min_age_hours: int = 168) -> List[Tuple[Path, int, datetime]]:
+    def find_dataset_files(self, old_only: bool = False, min_age_hours: int = 168, 
+                          filter_repo: str = None) -> List[Tuple[Path, int, datetime]]:
         """
         Trova file dataset da eliminare
         
         Args:
             old_only: Se True, filtra per età
             min_age_hours: Età minima in ore (default: 168 = 7 giorni)
+            filter_repo: Se specificato, cerca solo dataset di un repository specifico (es: 'black', 'requests')
         """
         dataset_files = []
         
@@ -199,6 +202,10 @@ class RepoCleanup:
                     if file_path.name.startswith('analysis_') or file_path.name.startswith('summary_'):
                         continue
                     
+                    # Filtra per repository se specificato
+                    if filter_repo and not file_path.name.startswith(f"{filter_repo}_"):
+                        continue
+                    
                     # Filtra per età se richiesto
                     if old_only and not self.is_old_file(file_path, hours=min_age_hours):
                         continue
@@ -213,38 +220,113 @@ class RepoCleanup:
         
         return dataset_files
     
-    def show_dataset_stats(self):
-        """Mostra statistiche sui dataset locali"""
+    def get_dataset_stats_by_repo(self) -> dict:
+        """
+        Ottiene statistiche sui dataset raggruppate per repository
+        
+        Returns:
+            Dict con repo_name -> {'count': int, 'size': int, 'files': list}
+        """
+        stats = {}
+        
+        for dataset_dir in self.dataset_dirs:
+            if not dataset_dir.exists():
+                continue
+            
+            try:
+                for file_path in dataset_dir.glob("*.json"):
+                    if not file_path.is_file():
+                        continue
+                    
+                    # Skip file speciali
+                    if file_path.name.startswith('analysis_') or file_path.name.startswith('summary_'):
+                        continue
+                    
+                    # Estrai nome repository (es: "black_20251102_143831_51.json" -> "black")
+                    repo_name = file_path.stem.split('_')[0]
+                    
+                    if repo_name not in stats:
+                        stats[repo_name] = {'count': 0, 'size': 0, 'files': []}
+                    
+                    size = file_path.stat().st_size
+                    stats[repo_name]['count'] += 1
+                    stats[repo_name]['size'] += size
+                    stats[repo_name]['files'].append(file_path)
+            
+            except (PermissionError, OSError) as e:
+                if self.verbose:
+                    print(f"⚠️  Errore analisi {dataset_dir}: {e}")
+        
+        return stats
+    
+    def show_dataset_stats(self, group_by_repo: bool = True):
+        """
+        Mostra statistiche sui dataset locali
+        
+        Args:
+            group_by_repo: Se True, raggruppa per repository
+        """
         print()
         print("=" * 70)
         print("📊 STATISTICHE DATASET LOCALI")
         print("=" * 70)
         print()
         
-        total_files = 0
-        total_size = 0
-        
-        for dataset_dir in self.dataset_dirs:
-            if not dataset_dir.exists():
-                continue
+        if group_by_repo:
+            # Statistiche raggruppate per repository
+            stats = self.get_dataset_stats_by_repo()
             
-            files = [f for f in dataset_dir.glob("*.json") 
-                    if f.is_file() and not f.name.startswith('analysis_') and not f.name.startswith('summary_')]
-            
-            if files:
-                dir_size = sum(f.stat().st_size for f in files)
-                total_files += len(files)
-                total_size += dir_size
-                
-                print(f"📁 {dataset_dir}")
-                print(f"   File: {len(files)}")
-                print(f"   Dimensione: {self.format_size(dir_size)}")
+            if not stats:
+                print("✅ Nessun dataset trovato")
                 print()
-        
-        print("=" * 70)
-        print(f"Totale: {total_files} file, {self.format_size(total_size)}")
-        print("=" * 70)
-        print()
+                return
+            
+            # Ordina per dimensione
+            sorted_repos = sorted(stats.items(), key=lambda x: x[1]['size'], reverse=True)
+            
+            total_files = 0
+            total_size = 0
+            
+            for repo_name, data in sorted_repos:
+                total_files += data['count']
+                total_size += data['size']
+                
+                print(f"📦 {repo_name}")
+                print(f"   File: {data['count']}")
+                print(f"   Dimensione: {self.format_size(data['size'])}")
+                print(f"   Media: {self.format_size(data['size'] // data['count'])} per file")
+                print()
+            
+            print("=" * 70)
+            print(f"📊 Totale: {len(stats)} repository, {total_files} file, {self.format_size(total_size)}")
+            print("=" * 70)
+            print()
+        else:
+            # Statistiche per directory
+            total_files = 0
+            total_size = 0
+            
+            for dataset_dir in self.dataset_dirs:
+                if not dataset_dir.exists():
+                    continue
+                
+                files = [f for f in dataset_dir.glob("*.json") 
+                        if f.is_file() and not f.name.startswith('analysis_') and not f.name.startswith('summary_')]
+                
+                if files:
+                    dir_size = sum(f.stat().st_size for f in files)
+                    total_files += len(files)
+                    total_size += dir_size
+                    
+                    print(f"📁 {dataset_dir}")
+                    print(f"   File: {len(files)}")
+                    print(f"   Dimensione: {self.format_size(dir_size)}")
+                    print()
+            
+            print("=" * 70)
+            print(f"Totale: {total_files} file, {self.format_size(total_size)}")
+            print("=" * 70)
+            print()
     
     def print_summary(self, repos: List[Tuple[Path, int, datetime]], 
                       files: List[Tuple[Path, int, datetime]]):
@@ -338,7 +420,8 @@ class RepoCleanup:
         return deleted_count, deleted_size
     
     def cleanup(self, old_only: bool = False, auto: bool = False, force: bool = False, 
-                include_datasets: bool = False):
+                include_datasets: bool = False, filter_repo: str = None, 
+                datasets_only: bool = False):
         """
         Esegue pulizia completa
         
@@ -347,12 +430,21 @@ class RepoCleanup:
             auto: Esegui senza conferma
             force: Forza eliminazione
             include_datasets: Include anche i dataset locali (default: False)
+            filter_repo: Filtra per repository specifico (es: 'black', 'requests')
+            datasets_only: Pulisci SOLO i dataset (ignora temp repos)
         """
         print()
         print("=" * 70)
-        print("🧹 CLEANUP REPOSITORY TEMPORANEI")
-        if include_datasets:
-            print("   + DATASET LOCALI")
+        if datasets_only:
+            print("🧹 CLEANUP DATASET")
+            if filter_repo:
+                print(f"   Repository: {filter_repo}")
+        else:
+            print("🧹 CLEANUP REPOSITORY TEMPORANEI")
+            if include_datasets:
+                print("   + DATASET LOCALI")
+                if filter_repo:
+                    print(f"   Repository: {filter_repo}")
         print("=" * 70)
         print()
         
@@ -361,20 +453,33 @@ class RepoCleanup:
             print()
         
         # Cerca elementi
-        print("🔍 Ricerca file temporanei...")
-        repos = self.find_repo_dirs(old_only=old_only)
-        files = self.find_temp_files(old_only=old_only)
+        repos = []
+        files = []
+        
+        if not datasets_only:
+            print("🔍 Ricerca file temporanei...")
+            repos = self.find_repo_dirs(old_only=old_only)
+            files = self.find_temp_files(old_only=old_only)
         
         # Cerca dataset se richiesto
         datasets = []
-        if include_datasets:
+        if include_datasets or datasets_only:
             print("🔍 Ricerca dataset locali...")
+            if filter_repo:
+                print(f"   Filtrando per repository: {filter_repo}")
             # Per i dataset usa età minima di 7 giorni se old_only
-            datasets = self.find_dataset_files(old_only=old_only, min_age_hours=168)
+            datasets = self.find_dataset_files(
+                old_only=old_only, 
+                min_age_hours=168,
+                filter_repo=filter_repo
+            )
         
         if not repos and not files and not datasets:
             print()
-            print("✅ Nessun file temporaneo trovato!")
+            if datasets_only:
+                print("✅ Nessun dataset trovato!")
+            else:
+                print("✅ Nessun file temporaneo trovato!")
             print("   Il sistema è già pulito.")
             return
         
@@ -459,23 +564,26 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Esempi:
-  # Mostra cosa verrebbe eliminato
-  python cleanup_temp_repos.py --dry-run
-  
-  # Elimina solo repository più vecchi di 24 ore
-  python cleanup_temp_repos.py --old-only --auto
-  
-  # Mostra statistiche dataset locali
+  # Mostra statistiche dataset (raggruppati per repository)
   python cleanup_temp_repos.py --show-datasets
   
-  # Pulisci anche dataset più vecchi di 7 giorni
-  python cleanup_temp_repos.py --include-datasets --old-only --auto
+  # Elimina SOLO i dataset del repository 'black'
+  python cleanup_temp_repos.py --datasets-only --repo black --auto
   
-  # Pulizia completa (repository + dataset)
+  # Elimina TUTTI i dataset (tutti i repository)
+  python cleanup_temp_repos.py --datasets-only --force
+  
+  # Elimina dataset più vecchi di 7 giorni
+  python cleanup_temp_repos.py --datasets-only --old-only --auto
+  
+  # Elimina dataset 'requests' con preview
+  python cleanup_temp_repos.py --datasets-only --repo requests --dry-run
+  
+  # Pulizia completa: repository temporanei + dataset
   python cleanup_temp_repos.py --include-datasets --force
   
-  # Modalità interattiva (default)
-  python cleanup_temp_repos.py
+  # Elimina solo repository temporanei (come prima)
+  python cleanup_temp_repos.py --auto
         """
     )
     
@@ -516,6 +624,18 @@ Esempi:
     )
     
     parser.add_argument(
+        '--datasets-only',
+        action='store_true',
+        help='Pulisci SOLO i dataset (ignora repository temporanei)'
+    )
+    
+    parser.add_argument(
+        '--repo',
+        type=str,
+        help='Filtra per repository specifico (es: black, requests, flask)'
+    )
+    
+    parser.add_argument(
         '--quiet',
         action='store_true',
         help='Modalità silenziosa (solo errori)'
@@ -535,8 +655,12 @@ Esempi:
     
     # Solo mostra statistiche dataset
     if args.show_datasets:
-        cleaner.show_dataset_stats()
+        cleaner.show_dataset_stats(group_by_repo=True)
         sys.exit(0)
+    
+    # Se datasets_only è specificato, abilita automaticamente include_datasets
+    if args.datasets_only:
+        args.include_datasets = True
     
     # Esegui cleanup
     try:
@@ -544,7 +668,9 @@ Esempi:
             old_only=args.old_only,
             auto=args.auto,
             force=args.force,
-            include_datasets=args.include_datasets
+            include_datasets=args.include_datasets,
+            filter_repo=args.repo,
+            datasets_only=args.datasets_only
         )
     except KeyboardInterrupt:
         print()

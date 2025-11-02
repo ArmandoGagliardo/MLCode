@@ -69,7 +69,7 @@ try:
 
         # Test our UniversalParser
         print("\nTesting UniversalParser...")
-        from module.preprocessing.universal_parser import UniversalParser
+        from legacy.universal_parser_legacy import UniversalParser
 
         up = UniversalParser()
         if up.languages:

@@ -102,7 +102,7 @@ class UniversalParser(BaseParser):
             "javascript": ["function_declaration", "method_definition", "class_declaration", "arrow_function"],
             "php": ["function_definition", "class_declaration"],
             "go": ["function_declaration", "method_declaration"],
-            "ruby": ["method", "class"],
+            "ruby": ["method"],  # Only extract methods, not classes (classes are traversed for nested methods)
             "rust": ["function_item", "impl_item"],
         }
 
@@ -141,8 +141,8 @@ class UniversalParser(BaseParser):
                             signature = info.get("signature", "")
                             body = info["body"]
                             
-                            # For Python, combine signature and body correctly
-                            if language == "python" and signature:
+                            # For Python, combine signature and body correctly preserving newlines
+                            if language == "python" and signature and '\n' in body:
                                 # The body might have mixed indentation (e.g., docstring at level 0, code at level 4)
                                 # We need to ensure all lines have consistent 4-space indentation
                                 body_lines = body.split('\n')
@@ -174,6 +174,46 @@ class UniversalParser(BaseParser):
                                 
                                 indented_body = '\n'.join(indented_lines).rstrip()
                                 full_code = signature + '\n' + indented_body
+                            
+                            # For Ruby, always format with proper structure and add 'end'
+                            elif language == "ruby" and signature:
+                                # Ruby methods need proper formatting with 'end' keyword
+                                indent_size = 2
+                                body_lines = body.split('\n') if '\n' in body else [body]
+                                
+                                # Find minimum non-zero indentation
+                                min_indent = None
+                                for line in body_lines:
+                                    if line.strip():
+                                        leading = len(line) - len(line.lstrip())
+                                        if leading > 0:
+                                            if min_indent is None or leading < min_indent:
+                                                min_indent = leading
+                                
+                                if min_indent is None:
+                                    min_indent = 0
+                                
+                                # Reindent: remove min_indent, add 2 spaces
+                                indented_lines = []
+                                for line in body_lines:
+                                    if line.strip():
+                                        # Remove min_indent if present
+                                        if len(line) >= min_indent and line[:min_indent].isspace():
+                                            clean_line = line[min_indent:]
+                                        else:
+                                            clean_line = line.lstrip()
+                                        indented_lines.append(' ' * indent_size + clean_line)
+                                    else:
+                                        indented_lines.append('')
+                                
+                                indented_body = '\n'.join(indented_lines).rstrip()
+                                
+                                # Add 'end' keyword if not present
+                                if not indented_body.rstrip().endswith('end'):
+                                    full_code = signature + '\n' + indented_body + '\nend'
+                                else:
+                                    full_code = signature + '\n' + indented_body
+                            
                             else:
                                 full_code = (signature + " " + body).strip()
                             
@@ -185,6 +225,7 @@ class UniversalParser(BaseParser):
                                 "name": name,  # Also add 'name' field for github_repo_processor
                                 "body": body,  # Keep original body for reference
                                 "signature": signature,
+                                "doc": info.get("doc", ""),  # Include extracted docstring/comment
                                 "input": prompt.strip(),
                                 "output": full_code.strip()
                             })
