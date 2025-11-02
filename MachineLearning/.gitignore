@@ -153,5 +153,11 @@ figures/
 docs/_build/
 docs/build/
 docs/generated/
-
+client/frontend/
+client/backend/
+client/*.py
 # File di grandi dimensioni dataset folder
+datasets/raw/
+datasets/processed/
+datasets/interim/
+datasets/external/

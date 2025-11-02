@@ -78,7 +78,7 @@ def train(task):
     if task in ["code_generation", "security_classification"]:
         logger.info("Using AdvancedTrainer for training...")
         from module.model.training_model_advanced import AdvancedTrainer
-        trainer = AdvancedTrainer(model_manager, use_gpu=False)
+        trainer = AdvancedTrainer(model_manager, use_gpu=True)
 
         trainer.train_model(
             dataset_path=dataset_path,

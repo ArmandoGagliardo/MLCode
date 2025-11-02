@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import torch
 
 class InferenceEngine:
     '''
@@ -6,12 +7,16 @@ class InferenceEngine:
     Estende la generazione con sampling, top-p e temperature per evitare risposte corte o generiche.
     '''
     def __init__(self, model_path):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
+        self.model.to(self.device)
+        self.model.eval()  # Set to evaluation mode
 
     def generate(self, prompt: str):
         inputs = self.tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
-        
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
         output = self.model.generate(
             input_ids=inputs["input_ids"],
             attention_mask=inputs["attention_mask"],
