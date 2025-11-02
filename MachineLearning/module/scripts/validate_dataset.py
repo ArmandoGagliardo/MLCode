@@ -23,6 +23,12 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, List, Tuple
 
+# Add project root to path
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+from config import LOCAL_DATASET_PATH
+
 
 class DatasetValidator:
     """Validatore completo per dataset"""
@@ -47,25 +53,38 @@ class DatasetValidator:
         errors = []
         warnings = []
         
-        # Campi obbligatori
+        # Campi obbligatori (basato su github_repo_processor.py)
         required_fields = ['task_type', 'language', 'input', 'output']
         for field in required_fields:
             if field not in item:
                 errors.append(f"Item {index}: Campo obbligatorio mancante: {field}")
         
         # Campi opzionali ma consigliati
-        recommended_fields = ['func_name']
+        recommended_fields = ['func_name', 'repo_url', 'file_path', 'extracted_at']
+        missing_recommended = []
         for field in recommended_fields:
             if field not in item:
-                warnings.append(f"Item {index}: Campo consigliato mancante: {field}")
+                missing_recommended.append(field)
+        
+        if missing_recommended:
+            warnings.append(f"Item {index}: Campi consigliati mancanti: {', '.join(missing_recommended)}")
+        
+        # Valida tipi di dato
+        if 'task_type' in item and not isinstance(item['task_type'], str):
+            errors.append(f"Item {index}: task_type deve essere stringa, trovato {type(item['task_type']).__name__}")
+        
+        if 'language' in item and not isinstance(item['language'], str):
+            errors.append(f"Item {index}: language deve essere stringa, trovato {type(item['language']).__name__}")
         
         # Valida lunghezza minima
         if 'input' in item:
-            if not item['input'] or len(item['input'].strip()) < 10:
+            input_val = str(item['input']) if item['input'] is not None else ''
+            if not input_val or len(input_val.strip()) < 10:
                 errors.append(f"Item {index}: Input troppo corto (min 10 caratteri)")
         
         if 'output' in item:
-            if not item['output'] or len(item['output'].strip()) < 5:
+            output_val = str(item['output']) if item['output'] is not None else ''
+            if not output_val or len(output_val.strip()) < 5:
                 errors.append(f"Item {index}: Output troppo corto (min 5 caratteri)")
         
         # Valida task_type
@@ -78,9 +97,21 @@ class DatasetValidator:
         # Valida language
         if 'language' in item:
             valid_languages = ['python', 'javascript', 'java', 'cpp', 'go', 'rust', 'php',
-                             'typescript', 'ruby', 'c', 'csharp', 'swift']
+                             'typescript', 'ruby', 'c', 'csharp', 'swift', 'c++']
             if item['language'].lower() not in valid_languages:
                 warnings.append(f"Item {index}: language '{item['language']}' non riconosciuto")
+        
+        # Valida formato repo_url se presente
+        if 'repo_url' in item and item['repo_url']:
+            repo_url = str(item['repo_url'])
+            if not repo_url.startswith(('http://', 'https://', 'git@')):
+                warnings.append(f"Item {index}: repo_url non ha formato valido")
+        
+        # Valida func_name se presente
+        if 'func_name' in item and item['func_name']:
+            func_name = str(item['func_name'])
+            if func_name in ['unknown', '', 'None']:
+                warnings.append(f"Item {index}: func_name è '{func_name}'")
         
         return len(errors) == 0, errors + warnings
     
@@ -88,7 +119,7 @@ class DatasetValidator:
         """Valida la qualità del codice"""
         warnings = []
         
-        output = item.get('output', '')
+        output = str(item.get('output', '')) if item.get('output') is not None else ''
         
         # Check lunghezza
         if len(output) > 10000:
@@ -99,7 +130,7 @@ class DatasetValidator:
             warnings.append(f"Item {index}: Contiene caratteri null")
         
         # Check bilanciamento parentesi (Python)
-        if item.get('language') == 'python':
+        if item.get('language') == 'python' and output:
             if output.count('(') != output.count(')'):
                 warnings.append(f"Item {index}: Parentesi non bilanciate")
             if output.count('[') != output.count(']'):
@@ -258,17 +289,25 @@ class DatasetValidator:
 
 
 def validate_all_datasets():
-    """Valida tutti i dataset nella cartella datasets/"""
-    dataset_dir = Path("datasets")
+    """Valida tutti i dataset nella cartella datasets/local_backup/code_generation/"""
+    # Directory dove vengono salvati i dataset in locale
+    # Stesso percorso dello storage cloud ma con local_backup prefix
+    dataset_dir = LOCAL_DATASET_PATH
     
     if not dataset_dir.exists():
-        print(f"❌ Directory datasets/ non trovata")
+        print(f"❌ Directory {dataset_dir} non trovata")
+        print(f"   I dataset locali vengono salvati in: {LOCAL_DATASET_PATH}")
+        print(f"   (Stesso percorso dello storage cloud: datasets/code_generation/)")
         return False
     
-    json_files = list(dataset_dir.glob("*.json"))
+    # Filtra solo i file dataset (escludi summary e analysis)
+    json_files = [f for f in dataset_dir.glob("*.json") 
+                  if not f.name.startswith('analysis_') and not f.name.startswith('summary_')]
     
     if not json_files:
-        print(f"❌ Nessun file .json trovato in datasets/")
+        print(f"❌ Nessun file .json trovato in {dataset_dir}")
+        print(f"   Esegui prima il crawling per generare dataset:")
+        print(f"   python example_single_repo.py")
         return False
     
     print(f"\n{'='*70}")
@@ -324,13 +363,13 @@ Esempi:
     parser.add_argument(
         '--file', '-f',
         type=str,
-        help='File dataset da validare (default: datasets/dataset_migrated.json)'
+        help='File dataset da validare (default: datasets/local_backup/code_generation/<ultimo>)'
     )
     
     parser.add_argument(
         '--all', '-a',
         action='store_true',
-        help='Valida tutti i dataset nella cartella datasets/'
+        help='Valida tutti i dataset nella cartella datasets/local_backup/code_generation/'
     )
     
     parser.add_argument(
@@ -352,7 +391,30 @@ Esempi:
     if args.all:
         success = validate_all_datasets()
     else:
-        file_path = args.file or "datasets/dataset_migrated.json"
+        # Se non specificato, usa l'ultimo file generato
+        if args.file:
+            file_path = args.file
+        else:
+            # Cerca l'ultimo file in local_backup (escludi summary)
+            local_dir = LOCAL_DATASET_PATH
+            if local_dir.exists():
+                json_files = [f for f in local_dir.glob("*.json") 
+                             if not f.name.startswith('analysis_') and not f.name.startswith('summary_')]
+                json_files = sorted(json_files, key=lambda x: x.stat().st_mtime, reverse=True)
+                if json_files:
+                    file_path = str(json_files[0])
+                    print(f"📁 Usando ultimo file generato: {file_path}\n")
+                else:
+                    print(f"❌ Nessun file trovato in {local_dir}")
+                    print(f"   Esegui prima il crawling per generare dataset")
+                    sys.exit(1)
+            else:
+                # Fallback al vecchio path
+                file_path = "datasets/dataset_migrated.json"
+                if not Path(file_path).exists():
+                    print(f"❌ File non trovato: {file_path}")
+                    print(f"   Specifica un file con --file o genera dataset con il crawler")
+                    sys.exit(1)
         
         validator = DatasetValidator(strict=args.strict)
         success = validator.validate_file(file_path)

@@ -33,6 +33,11 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Tuple
 
+# Add project root to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from config import LOCAL_DATASET_PATH
+
 
 class RepoCleanup:
     """Gestisce la pulizia dei repository temporanei"""
@@ -44,12 +49,19 @@ class RepoCleanup:
         self.total_files = 0
         self.total_dirs = 0
         
-        # Directories da pulire
+        # Directories da pulire (repository clonati temporanei)
         self.temp_dirs = [
             Path("temp"),
             Path("repos"),
             Path("cloned_repos"),
             Path("temp_repos"),
+        ]
+        
+        # Directories dataset locali (non vengono eliminate di default)
+        # Path corretto: stesso path dello storage cloud ma con local_backup
+        # Importato da config.py per mantenere coerenza
+        self.dataset_dirs = [
+            LOCAL_DATASET_PATH,
         ]
         
         # Pattern da mantenere (whitelist)
@@ -163,6 +175,77 @@ class RepoCleanup:
         
         return temp_files
     
+    def find_dataset_files(self, old_only: bool = False, min_age_hours: int = 168) -> List[Tuple[Path, int, datetime]]:
+        """
+        Trova file dataset da eliminare
+        
+        Args:
+            old_only: Se True, filtra per età
+            min_age_hours: Età minima in ore (default: 168 = 7 giorni)
+        """
+        dataset_files = []
+        
+        for dataset_dir in self.dataset_dirs:
+            if not dataset_dir.exists():
+                continue
+            
+            try:
+                # Trova tutti i file JSON eccetto summary/analysis
+                for file_path in dataset_dir.glob("*.json"):
+                    if not file_path.is_file():
+                        continue
+                    
+                    # Skip file speciali
+                    if file_path.name.startswith('analysis_') or file_path.name.startswith('summary_'):
+                        continue
+                    
+                    # Filtra per età se richiesto
+                    if old_only and not self.is_old_file(file_path, hours=min_age_hours):
+                        continue
+                    
+                    size = file_path.stat().st_size
+                    mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+                    dataset_files.append((file_path, size, mtime))
+            
+            except (PermissionError, OSError) as e:
+                if self.verbose:
+                    print(f"⚠️  Errore ricerca {dataset_dir}: {e}")
+        
+        return dataset_files
+    
+    def show_dataset_stats(self):
+        """Mostra statistiche sui dataset locali"""
+        print()
+        print("=" * 70)
+        print("📊 STATISTICHE DATASET LOCALI")
+        print("=" * 70)
+        print()
+        
+        total_files = 0
+        total_size = 0
+        
+        for dataset_dir in self.dataset_dirs:
+            if not dataset_dir.exists():
+                continue
+            
+            files = [f for f in dataset_dir.glob("*.json") 
+                    if f.is_file() and not f.name.startswith('analysis_') and not f.name.startswith('summary_')]
+            
+            if files:
+                dir_size = sum(f.stat().st_size for f in files)
+                total_files += len(files)
+                total_size += dir_size
+                
+                print(f"📁 {dataset_dir}")
+                print(f"   File: {len(files)}")
+                print(f"   Dimensione: {self.format_size(dir_size)}")
+                print()
+        
+        print("=" * 70)
+        print(f"Totale: {total_files} file, {self.format_size(total_size)}")
+        print("=" * 70)
+        print()
+    
     def print_summary(self, repos: List[Tuple[Path, int, datetime]], 
                       files: List[Tuple[Path, int, datetime]]):
         """Stampa riepilogo trovato"""
@@ -254,11 +337,22 @@ class RepoCleanup:
         
         return deleted_count, deleted_size
     
-    def cleanup(self, old_only: bool = False, auto: bool = False, force: bool = False):
-        """Esegue pulizia completa"""
+    def cleanup(self, old_only: bool = False, auto: bool = False, force: bool = False, 
+                include_datasets: bool = False):
+        """
+        Esegue pulizia completa
+        
+        Args:
+            old_only: Pulisci solo file vecchi
+            auto: Esegui senza conferma
+            force: Forza eliminazione
+            include_datasets: Include anche i dataset locali (default: False)
+        """
         print()
         print("=" * 70)
         print("🧹 CLEANUP REPOSITORY TEMPORANEI")
+        if include_datasets:
+            print("   + DATASET LOCALI")
         print("=" * 70)
         print()
         
@@ -271,7 +365,14 @@ class RepoCleanup:
         repos = self.find_repo_dirs(old_only=old_only)
         files = self.find_temp_files(old_only=old_only)
         
-        if not repos and not files:
+        # Cerca dataset se richiesto
+        datasets = []
+        if include_datasets:
+            print("🔍 Ricerca dataset locali...")
+            # Per i dataset usa età minima di 7 giorni se old_only
+            datasets = self.find_dataset_files(old_only=old_only, min_age_hours=168)
+        
+        if not repos and not files and not datasets:
             print()
             print("✅ Nessun file temporaneo trovato!")
             print("   Il sistema è già pulito.")
@@ -279,6 +380,29 @@ class RepoCleanup:
         
         # Mostra riepilogo
         self.print_summary(repos, files)
+        
+        # Mostra dataset se inclusi
+        if datasets:
+            print()
+            print("=" * 70)
+            print(f"📦 DATASET LOCALI DA ELIMINARE: {len(datasets)}")
+            print("=" * 70)
+            print()
+            for path, size, mtime in datasets[:10]:
+                age = datetime.now() - mtime
+                age_str = f"{age.days}d" if age.days > 0 else f"{age.seconds//3600}h"
+                print(f"  • {path.name}")
+                print(f"    Dimensione: {self.format_size(size)}")
+                print(f"    Età: {age_str}")
+                print()
+            
+            if len(datasets) > 10:
+                print(f"  ... e altri {len(datasets) - 10} dataset")
+                print()
+            
+            dataset_size = sum(size for _, size, _ in datasets)
+            print(f"Totale dataset: {self.format_size(dataset_size)}")
+            print()
         
         # Conferma
         if not auto and not force and not self.dry_run:
@@ -294,6 +418,14 @@ class RepoCleanup:
         
         deleted_count, deleted_size = self.delete_items(repos, files)
         
+        # Elimina dataset se inclusi
+        dataset_deleted_count = 0
+        dataset_deleted_size = 0
+        if datasets:
+            dataset_deleted_count, dataset_deleted_size = self.delete_items([], datasets)
+            deleted_count += dataset_deleted_count
+            deleted_size += dataset_deleted_size
+        
         # Riepilogo finale
         print()
         print("=" * 70)
@@ -305,11 +437,15 @@ class RepoCleanup:
             print(f"Verrebbero eliminati:")
             print(f"  • {len(repos)} repository")
             print(f"  • {len(files)} file temporanei")
+            if datasets:
+                print(f"  • {len(datasets)} dataset")
             print(f"  • {self.format_size(deleted_size)} totali")
         else:
             print(f"✅ Eliminati:")
             print(f"  • {self.total_dirs} repository")
             print(f"  • {self.total_files} file temporanei")
+            if datasets:
+                print(f"  • {dataset_deleted_count} dataset")
             print(f"  • {self.format_size(deleted_size)} liberati")
         
         print()
@@ -326,11 +462,17 @@ Esempi:
   # Mostra cosa verrebbe eliminato
   python cleanup_temp_repos.py --dry-run
   
-  # Elimina solo file più vecchi di 24 ore
+  # Elimina solo repository più vecchi di 24 ore
   python cleanup_temp_repos.py --old-only --auto
   
-  # Pulizia completa senza conferma
-  python cleanup_temp_repos.py --force
+  # Mostra statistiche dataset locali
+  python cleanup_temp_repos.py --show-datasets
+  
+  # Pulisci anche dataset più vecchi di 7 giorni
+  python cleanup_temp_repos.py --include-datasets --old-only --auto
+  
+  # Pulizia completa (repository + dataset)
+  python cleanup_temp_repos.py --include-datasets --force
   
   # Modalità interattiva (default)
   python cleanup_temp_repos.py
@@ -358,7 +500,19 @@ Esempi:
     parser.add_argument(
         '--old-only',
         action='store_true',
-        help='Elimina solo file più vecchi di 24 ore'
+        help='Elimina solo file più vecchi di 24 ore (repo temp) o 7 giorni (dataset)'
+    )
+    
+    parser.add_argument(
+        '--include-datasets',
+        action='store_true',
+        help='Include anche i dataset locali nella pulizia'
+    )
+    
+    parser.add_argument(
+        '--show-datasets',
+        action='store_true',
+        help='Mostra statistiche sui dataset locali senza eliminare'
     )
     
     parser.add_argument(
@@ -379,12 +533,18 @@ Esempi:
         verbose=not args.quiet
     )
     
+    # Solo mostra statistiche dataset
+    if args.show_datasets:
+        cleaner.show_dataset_stats()
+        sys.exit(0)
+    
     # Esegui cleanup
     try:
         cleaner.cleanup(
             old_only=args.old_only,
             auto=args.auto,
-            force=args.force
+            force=args.force,
+            include_datasets=args.include_datasets
         )
     except KeyboardInterrupt:
         print()

@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # Controllo dipendenze (solo se non stiamo controllando le dipendenze o mostrando l'help)
 if '--check-deps' not in sys.argv and '--help' not in sys.argv and '-h' not in sys.argv:
     try:
-        from check_dependencies import check_dependencies
+        from debug.check_dependencies import check_dependencies
         deps_ok = check_dependencies(verbose=False, auto_install=False)
         if not deps_ok:
             logger.warning("Alcune dipendenze critiche non sono soddisfatte")
@@ -509,7 +509,6 @@ def show_stats():
     
     print("\n" + "="*60)
 
-
 # ==================== MAIN ====================
 
 def main():
@@ -599,8 +598,8 @@ Examples:
     # Execute requested action
     try:
         if args.check_deps:
-            from check_dependencies import check_dependencies
-            check_dependencies(verbose=True, auto_install=False)
+            from debug.check_dependencies import check_dependencies
+            check_dependencies(verbose=True, auto_install=True)
             
         elif args.collect_data:
             collect_data_from_repos(

@@ -20,6 +20,13 @@ DATASET_PATH = BASE_PATH / "datasets"
 MODELS_PATH = BASE_PATH / "models"
 RAW_DATA_PATH = DATASET_PATH / "raw"
 
+# Dataset storage paths (unificati)
+# Cloud: datasets/code_generation/
+# Local: datasets/local_backup/code_generation/
+CLOUD_DATASET_PATH = "datasets/code_generation"
+LOCAL_DATASET_PATH = Path("datasets/local_backup/code_generation")
+LOCAL_DATASET_BACKUP_PATH = LOCAL_DATASET_PATH  # Alias for clarity
+
 class Config:
     """
     Unified configuration manager that loads environment-specific settings.

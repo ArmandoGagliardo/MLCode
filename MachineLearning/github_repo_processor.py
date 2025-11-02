@@ -42,6 +42,7 @@ from module.preprocessing.universal_parser_new import UniversalParser
 from module.utils.duplicate_manager import DuplicateManager
 from module.preprocessing.code_quality_filter import QualityFilter
 from auto_cleanup import AutoCleanup
+from config import CLOUD_DATASET_PATH, LOCAL_DATASET_PATH
 
 # Setup logging
 logging.basicConfig(
@@ -526,8 +527,8 @@ class GitHubRepoProcessor:
         filename = f"{repo_name}_{timestamp}_{len(dataset)}.json"
 
         if self.cloud_save and self.storage:
-            # Save to cloud storage
-            cloud_path = f"datasets/code_generation/{filename}"
+            # Try to save to cloud storage
+            cloud_path = f"{CLOUD_DATASET_PATH}/{filename}"
             try:
                 # Convert to JSON
                 json_data = json.dumps(dataset, indent=2)
@@ -553,7 +554,7 @@ class GitHubRepoProcessor:
 
     def save_local_backup(self, dataset: List[Dict], filename: str):
         """Save dataset locally as backup."""
-        local_dir = Path("datasets/local_backup/code_generation")
+        local_dir = LOCAL_DATASET_PATH
         local_dir.mkdir(parents=True, exist_ok=True)
 
         local_path = local_dir / filename
