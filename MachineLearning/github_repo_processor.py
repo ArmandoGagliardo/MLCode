@@ -9,6 +9,9 @@ Usage:
     python github_repo_processor.py --repo https://github.com/user/repo
     python github_repo_processor.py --repos-file repo_list.txt
     python github_repo_processor.py --language python --count 100
+    
+GitHub Authentication:
+    Set GITHUB_TOKEN in .env file for private repos and higher rate limits.
 """
 
 import os
@@ -26,6 +29,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse
 import time
 from tqdm import tqdm
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -34,6 +41,7 @@ from module.storage.storage_manager import StorageManager
 from module.preprocessing.universal_parser_new import UniversalParser
 from module.utils.duplicate_manager import DuplicateManager
 from module.preprocessing.code_quality_filter import QualityFilter
+from auto_cleanup import AutoCleanup
 
 # Setup logging
 logging.basicConfig(
@@ -77,7 +85,8 @@ class GitHubRepoProcessor:
                  temp_dir: str = None,
                  cloud_save: bool = True,
                  max_file_size_mb: int = 10,
-                 batch_size: int = 100):
+                 batch_size: int = 100,
+                 auto_cleanup: bool = True):
         """
         Initialize the processor.
 
@@ -86,17 +95,26 @@ class GitHubRepoProcessor:
             cloud_save: Whether to save datasets to cloud storage
             max_file_size_mb: Maximum file size to process (in MB)
             batch_size: Number of functions to batch before saving
+            auto_cleanup: Automatically delete repos after processing
         """
         self.temp_dir = temp_dir or tempfile.mkdtemp(prefix="repos_")
         self.cloud_save = cloud_save
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
         self.batch_size = batch_size
+        self.auto_cleanup = auto_cleanup
 
         # Initialize components
         self.storage = StorageManager() if cloud_save else None
+        if self.storage and cloud_save:
+            logger.info("Cloud storage enabled - will upload extracted data")
+            logger.info(f"Storage provider: {self.storage.config.get('provider_type', 'unknown')}")
+        
         self.parser = UniversalParser()
         self.duplicate_manager = DuplicateManager()
         self.quality_filter = QualityFilter()
+        
+        # Initialize auto cleanup
+        self.cleaner = AutoCleanup(keep_on_error=True) if auto_cleanup else None
 
         # Statistics
         self.stats = {
@@ -178,9 +196,21 @@ class GitHubRepoProcessor:
             # Reduced logging - cloning happens quietly
             logger.debug(f"Cloning {repo_url} to {local_path}")
 
+            # Prepare git clone command with authentication if available
+            github_token = os.getenv('GITHUB_TOKEN')
+            
+            if github_token and 'github.com' in repo_url:
+                # Insert token into URL for authentication
+                # https://github.com/user/repo → https://TOKEN@github.com/user/repo
+                auth_url = repo_url.replace('https://', f'https://{github_token}@')
+                clone_url = auth_url
+                logger.debug("Using GitHub token for authentication")
+            else:
+                clone_url = repo_url
+            
             # Clone with depth 1 to save bandwidth
             result = subprocess.run(
-                ['git', 'clone', '--depth', '1', repo_url, local_path],
+                ['git', 'clone', '--depth', '1', clone_url, local_path],
                 capture_output=True,
                 text=True,
                 timeout=300  # 5 minutes timeout
@@ -405,6 +435,16 @@ class GitHubRepoProcessor:
 
             repo_stats['functions_extracted'] = total_functions_extracted
             repo_stats['status'] = 'success'
+            
+            # Auto cleanup dopo estrazione riuscita
+            if self.cleaner and local_path:
+                # Determina se upload è riuscito (verifica storage)
+                upload_success = self.cloud_save and self.storage is not None
+                self.cleaner.cleanup_after_upload(
+                    repo_path=local_path,
+                    upload_success=upload_success,
+                    extracted_count=total_functions_extracted
+                )
 
         except Exception as e:
             logger.error(f"Error processing {repo_url}: {e}")
@@ -412,8 +452,8 @@ class GitHubRepoProcessor:
             repo_stats['error'] = str(e)
 
         finally:
-            # Cleanup - delete cloned repo
-            if local_path and os.path.exists(local_path):
+            # Cleanup - delete cloned repo (solo se auto_cleanup disabilitato)
+            if not self.auto_cleanup and local_path and os.path.exists(local_path):
                 try:
                     # On Windows, git files can be locked. Try multiple times.
                     import time

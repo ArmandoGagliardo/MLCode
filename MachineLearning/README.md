@@ -1,17 +1,29 @@
-# Machine Learning Multi-Language Code Extraction System
+# Machine Learning Multi-Language Code Extraction & Training System
 
-A production-ready system for extracting and processing code from GitHub repositories across 7 programming languages, with advanced quality filtering and cloud storage integration.
+A production-ready system for extracting code from GitHub repositories and training ML models across 7 programming languages, with advanced quality filtering, cloud storage integration, and automated training pipeline.
+
+> **🎉 NEW: Complete Training Pipeline Implemented!**  
+> Train ML models with your extracted data in 30 minutes. See [SISTEMA_COMPLETO.md](SISTEMA_COMPLETO.md) for full details.
 
 ## ✨ Features
 
+### Data Extraction ✅ 100% Working
 - **7 Programming Languages**: Python, JavaScript, Java, C++, Go, Ruby, Rust
 - **GitHub Integration**: Automatic repository cloning and processing
 - **Tree-Sitter Parsing**: Advanced AST-based code extraction
 - **Quality Filtering**: Language-specific validation and complexity checks
-- **Cloud Storage**: Automatic upload to DigitalOcean Spaces (S3-compatible)
 - **Duplicate Detection**: Hash-based deduplication system
 - **Progress Monitoring**: Real-time progress bars and statistics
-- **Graceful Shutdown**: CTRL+C handling for clean interruption
+- **6,674+ Functions**: Already extracted and ready for training
+
+### Machine Learning Training ✅ 100% Implemented
+- **Code Generation Models**: Train models to generate code from natural language
+- **Multi-Task Support**: Code generation, classification, security analysis
+- **GPU Acceleration**: Automatic multi-GPU training support
+- **Model Fine-tuning**: Pre-trained model fine-tuning (CodeGen, CodeT5, etc.)
+- **Quick Demo**: Train a model in 30 minutes with `example_training.py`
+- **Production Pipeline**: Complete training with `main.py --train`
+- **Inference Ready**: Use trained models with `example_use_trained_model.py`
 
 ## 📊 Proven Results
 
@@ -28,25 +40,86 @@ Successfully tested on real-world repositories:
 
 ## 🚀 Quick Start
 
-### Installation
-- (Optional) CUDA-capable GPU for training
+**NEW**: See [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) for a 5-minute tutorial!
 
-### 2. Clone & Install
+### 1. Installation
 
 ```bash
 git clone <repository-url>
 cd MachineLearning
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+.venv\Scripts\activate  # Windows
+# source .venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 ```
 
-### 3. Build Tree-sitter Grammars
+### 2. First Extraction (Choose One)
 
-Required for code parsing:
+**Option A: Interactive Interface** (Easiest)
+```bash
+python main.py
+# Choose 1, enter: https://github.com/psf/requests
+```
+
+**Option B: Example Script**
+```bash
+python example_single_repo.py
+```
+
+**Option C: Bulk Processing**
+```bash
+# Create repo_list.txt with URLs
+python bulk_processor.py --source github --repos repo_list.txt
+```
+
+### 3. View Results
 
 ```bash
-python build_languages.py
+# Check output
+dir datasets\local_backup\code_generation\*.json
+
+# Analyze results
+python example_analyze_output.py
+```
+
+## 📚 Documentation
+
+### Quick Start Guides
+- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - ⚡ Data extraction in 5 minutes
+- **[QUICK_START_TRAINING.md](QUICK_START_TRAINING.md)** - 🎓 Model training in 10 minutes
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - 📋 Command cheat sheet
+
+### Complete Guides
+- **[USAGE_GUIDE.md](USAGE_GUIDE.md)** - 📖 Complete data extraction guide
+- **[GUIDA_TRAINING.md](GUIDA_TRAINING.md)** - 🚀 Complete training pipeline guide
+- **[debug/README.md](debug/README.md)** - 🐛 Testing and debugging
+- **[docs/README.md](docs/README.md)** - 📚 Technical documentation
+
+## 📖 Example Scripts
+
+### Data Extraction
+- `example_single_repo.py` - Extract from single GitHub repository
+- `example_bulk_processing.py` - Batch process multiple repositories
+- `example_analyze_output.py` - Analyze extraction results and statistics
+
+### Model Training
+- `example_training.py` - Simple training demo with your extracted data
+- `main.py --train` - Production training pipeline
+- `gpu_server.py` - REST API inference server
+
+## 🛠️ Requirements
+
+### Core Dependencies
+- Python 3.8+
+- tree-sitter 0.25.0+ (7 language parsers)
+- boto3 (cloud storage)
+- GitPython (repository cloning)
+
+### Tree-sitter Language Parsers
+
+All parsers are automatically installed via pip:
+```bash
+pip install tree-sitter tree-sitter-python tree-sitter-javascript tree-sitter-java tree-sitter-cpp tree-sitter-go tree-sitter-ruby tree-sitter-rust
 ```bash
 # Install dependencies
 pip install -r requirements.txt

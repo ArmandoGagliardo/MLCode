@@ -79,15 +79,12 @@ Thumbs.db
 
 # Env / secrets
 .env
-.env.*
+
 *.env
 gpu_instance.env
 secrets.json
 credentials/
-# New unified config env files
-config/.env*
-config/*.env
-config_backup/
+
 
 # Compiled extensions / binaries
 *.so
@@ -123,23 +120,23 @@ generated_keys.txt
 api_keys.json
 
 # Configurazioni specifiche del progetto
-config/settings_local.py
-config/credentials.json
-config/secrets/
-config/private_keys/
-config/*.env
-config/*.log
-config/tmp/
-config/cache/
-config/.DS_Store
-config/.vscode/
-config/.idea/
-config/__pycache__/
-config/*.bak
-config/*.swp
-config/*.tmp
-config/legacy/
-
+#config/settings_local.py
+#config/credentials.json
+#config/secrets/
+#config/private_keys/
+#config/*.env
+#config/*.log
+#config/tmp/
+#config/cache/
+#config/.DS_Store
+#config/.vscode/
+#config/.idea/
+#config/__pycache__/
+#config/*.bak
+#config/*.swp
+#config/*.tmp
+#config/legacy/
+#
 # Logs e output temporanei
 logs/
 temp/

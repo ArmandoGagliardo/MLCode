@@ -3,13 +3,38 @@ Dependency Checker
 
 Verifica che tutti i pacchetti Python richiesti siano installati.
 Controlla le versioni e fornisce istruzioni per l'installazione.
+
+Uso:
+    python debug/check_dependencies.py
+    python debug/check_dependencies.py --verbose
+    python debug/check_dependencies.py --auto-install
+    python debug/check_dependencies.py --fix
 """
 
 import sys
 import subprocess
+import os
 from typing import Dict, List, Tuple
-import importlib.metadata
-from packaging import version
+from pathlib import Path
+
+try:
+    import importlib.metadata as metadata
+except ImportError:
+    # Fallback per Python < 3.8
+    try:
+        import importlib_metadata as metadata
+    except ImportError:
+        metadata = None
+        print("❌ ERRORE: importlib.metadata non disponibile")
+        print("   pip install importlib-metadata")
+
+try:
+    from packaging import version
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+    print("⚠️  Warning: 'packaging' non installato, controllo versioni disabilitato")
+    print("   pip install packaging")
 
 
 # Dipendenze critiche richieste per il funzionamento base
@@ -80,15 +105,22 @@ def check_python_version() -> Tuple[bool, str]:
 
 def is_package_installed(package_name: str) -> Tuple[bool, str]:
     """Controlla se un pacchetto è installato e restituisce la versione"""
+    if metadata is None:
+        return False, None
+    
     try:
-        pkg_version = importlib.metadata.version(package_name)
+        pkg_version = metadata.version(package_name)
         return True, pkg_version
-    except importlib.metadata.PackageNotFoundError:
+    except Exception:
+        # Catch all exceptions (PackageNotFoundError, etc.)
         return False, None
 
 
 def compare_versions(installed: str, required: str) -> bool:
     """Confronta le versioni dei pacchetti"""
+    if not HAS_PACKAGING:
+        return True  # Salta controllo se packaging non disponibile
+    
     try:
         return version.parse(installed) >= version.parse(required)
     except Exception:
