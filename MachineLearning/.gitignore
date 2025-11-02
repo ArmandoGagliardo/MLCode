@@ -94,13 +94,64 @@ credentials/
 *.tmp
 *.bak
 *.swp
+*.md
 
-# Client side files
-client/
+# Legacy files
 legacy/
 
 # Claude files
 .claude/
 
-# .md files
-*.md
+# Client - File Sensibili (NON committare!)
+client/config/.env
+client/*.log
+client/generated_keys.txt
+client/backend/__pycache__/
+client/frontend/node_modules/
+
+# API Keys e Secrets (NON committare!)
+generated_keys.txt
+*.key
+*.secret
+*_key.txt
+api_keys.json
+
+# Configurazioni specifiche del progetto
+config/settings_local.py
+config/credentials.json
+config/secrets/
+config/private_keys/
+config/*.env
+config/*.log
+config/tmp/
+config/cache/
+config/.DS_Store
+config/.vscode/
+config/.idea/
+config/__pycache__/
+config/*.bak
+config/*.swp
+config/*.tmp
+config/legacy/
+
+# Logs e output temporanei
+logs/
+temp/
+tmp/
+output/ 
+cache/
+results/
+reports/
+figures/
+
+# File di backup e temporanei
+*.bak
+*.swp
+*.tmp
+
+# File di documentazione generati
+docs/_build/
+docs/build/
+docs/generated/
+
+# File di grandi dimensioni dataset folder

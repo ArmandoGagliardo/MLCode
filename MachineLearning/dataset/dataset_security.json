@@ -1,6 +1,0 @@
-[
-    {"input": "This script uses eval() on user input", "output": 1},
-    {"input": "This code reads a file safely with open()", "output": 0},
-    {"input": "Using subprocess without shell=True", "output": 0},
-    {"input": "This function executes raw SQL from user input", "output": 1}
-]
