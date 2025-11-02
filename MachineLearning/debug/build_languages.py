@@ -9,7 +9,13 @@ Language.build_library(
         'vendor/tree-sitter-java',
         'vendor/tree-sitter-javascript',
         'vendor/tree-sitter-php/php/',
-        'vendor/tree-sitter-go'
+        'vendor/tree-sitter-go',
+        'vendor/tree-sitter-ruby',
+        'vendor/tree-sitter-rust',
+        'vendor/tree-sitter-typescript/typescript',
+        'vendor/tree-sitter-html',
+        'vendor/tree-sitter-css',
+        'vendor/tree-sitter-json',
     ]
 )
 

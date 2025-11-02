@@ -4,7 +4,9 @@
       "Bash(python -c:*)",
       "Bash(requirements.txt)",
       "Bash(python:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []

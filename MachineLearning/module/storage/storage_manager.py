@@ -29,9 +29,13 @@ from typing import Optional, Dict, List
 from datetime import datetime
 import logging
 import json
+from dotenv import load_dotenv
 
 from .providers import create_provider
 from .base_provider import BaseStorageProvider
+
+# Load environment variables
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -77,38 +81,41 @@ class StorageManager:
         # Provider-specific configuration
         if provider_type == 'backblaze':
             config['provider_config'] = {
-                'bucket_name': os.getenv('BACKBLAZE_BUCKET'),
+                'bucket_name': os.getenv('BACKBLAZE_BUCKET_NAME') or os.getenv('BACKBLAZE_BUCKET'),
                 'key_id': os.getenv('BACKBLAZE_KEY_ID'),
                 'application_key': os.getenv('BACKBLAZE_APPLICATION_KEY'),
-                'endpoint_url': os.getenv('BACKBLAZE_ENDPOINT'),
+                'endpoint_url': os.getenv('BACKBLAZE_ENDPOINT_URL') or os.getenv('BACKBLAZE_ENDPOINT'),
             }
         elif provider_type == 'wasabi':
             config['provider_config'] = {
-                'bucket_name': os.getenv('WASABI_BUCKET'),
-                'access_key': os.getenv('WASABI_ACCESS_KEY'),
-                'secret_key': os.getenv('WASABI_SECRET_KEY'),
+                'bucket_name': os.getenv('WASABI_BUCKET_NAME') or os.getenv('WASABI_BUCKET'),
+                'access_key': os.getenv('WASABI_ACCESS_KEY_ID') or os.getenv('WASABI_ACCESS_KEY'),
+                'secret_key': os.getenv('WASABI_SECRET_ACCESS_KEY') or os.getenv('WASABI_SECRET_KEY'),
                 'region': os.getenv('WASABI_REGION', 'us-east-1'),
+                'endpoint_url': os.getenv('WASABI_ENDPOINT_URL'),
             }
         elif provider_type in ['s3', 'aws']:
             config['provider_config'] = {
-                'bucket_name': os.getenv('AWS_BUCKET'),
+                'bucket_name': os.getenv('AWS_BUCKET_NAME') or os.getenv('AWS_BUCKET'),
                 'access_key': os.getenv('AWS_ACCESS_KEY_ID'),
                 'secret_key': os.getenv('AWS_SECRET_ACCESS_KEY'),
                 'region': os.getenv('AWS_REGION', 'us-east-1'),
             }
         elif provider_type in ['digitalocean', 'do']:
             config['provider_config'] = {
-                'bucket_name': os.getenv('DO_SPACES_NAME'),
-                'access_key': os.getenv('DO_SPACES_KEY'),
-                'secret_key': os.getenv('DO_SPACES_SECRET'),
-                'region': os.getenv('DO_SPACES_REGION', 'nyc3'),
+                'bucket_name': os.getenv('DO_BUCKET_NAME') or os.getenv('DO_SPACES_NAME'),
+                'access_key': os.getenv('DO_ACCESS_KEY_ID') or os.getenv('DO_SPACES_KEY'),
+                'secret_key': os.getenv('DO_SECRET_ACCESS_KEY') or os.getenv('DO_SPACES_SECRET'),
+                'region': os.getenv('DO_REGION') or os.getenv('DO_SPACES_REGION', 'nyc3'),
+                'endpoint_url': os.getenv('DO_ENDPOINT_URL'),
             }
         elif provider_type in ['cloudflare_r2', 'r2']:
             config['provider_config'] = {
-                'bucket_name': os.getenv('CLOUDFLARE_R2_BUCKET'),
-                'account_id': os.getenv('CLOUDFLARE_R2_ACCOUNT_ID'),
-                'access_key': os.getenv('CLOUDFLARE_R2_ACCESS_KEY'),
-                'secret_key': os.getenv('CLOUDFLARE_R2_SECRET_KEY'),
+                'bucket_name': os.getenv('CLOUDFLARE_BUCKET_NAME') or os.getenv('CLOUDFLARE_R2_BUCKET'),
+                'account_id': os.getenv('CLOUDFLARE_ACCOUNT_ID') or os.getenv('CLOUDFLARE_R2_ACCOUNT_ID'),
+                'access_key': os.getenv('CLOUDFLARE_ACCESS_KEY_ID') or os.getenv('CLOUDFLARE_R2_ACCESS_KEY'),
+                'secret_key': os.getenv('CLOUDFLARE_SECRET_ACCESS_KEY') or os.getenv('CLOUDFLARE_R2_SECRET_KEY'),
+                'endpoint_url': os.getenv('CLOUDFLARE_ENDPOINT_URL'),
             }
         else:
             raise ValueError(f"Unsupported provider type: {provider_type}")

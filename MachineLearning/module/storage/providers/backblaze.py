@@ -66,22 +66,22 @@ class BackblazeProvider(BaseStorageProvider):
 
             # Test connection by listing buckets
             response = self.client.list_buckets()
-            logger.info(f"✅ Connected to Backblaze B2 (found {len(response['Buckets'])} buckets)")
+            logger.info(f"[OK] Connected to Backblaze B2 (found {len(response['Buckets'])} buckets)")
 
             # Check if our bucket exists
             bucket_exists = any(b['Name'] == self.bucket_name for b in response['Buckets'])
 
             if not bucket_exists:
-                logger.warning(f"⚠️  Bucket '{self.bucket_name}' not found")
+                logger.warning(f"[WARNING]  Bucket '{self.bucket_name}' not found")
                 return False
 
             return True
 
         except ClientError as e:
-            logger.error(f"❌ Failed to connect to Backblaze: {e}")
+            logger.error(f"[ERROR] Failed to connect to Backblaze: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error connecting to Backblaze: {e}")
+            logger.error(f"[ERROR] Error connecting to Backblaze: {e}")
             return False
 
     def upload_file(
@@ -104,14 +104,14 @@ class BackblazeProvider(BaseStorageProvider):
                 ExtraArgs=extra_args
             )
 
-            logger.info(f"✅ Uploaded: {local_path} -> {remote_path}")
+            logger.info(f"[OK] Uploaded: {local_path} -> {remote_path}")
             return True
 
         except ClientError as e:
-            logger.error(f"❌ Upload failed: {e}")
+            logger.error(f"[ERROR] Upload failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error uploading file: {e}")
+            logger.error(f"[ERROR] Error uploading file: {e}")
             return False
 
     def download_file(
@@ -127,14 +127,14 @@ class BackblazeProvider(BaseStorageProvider):
                 local_path
             )
 
-            logger.info(f"✅ Downloaded: {remote_path} -> {local_path}")
+            logger.info(f"[OK] Downloaded: {remote_path} -> {local_path}")
             return True
 
         except ClientError as e:
-            logger.error(f"❌ Download failed: {e}")
+            logger.error(f"[ERROR] Download failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error downloading file: {e}")
+            logger.error(f"[ERROR] Error downloading file: {e}")
             return False
 
     def list_files(
@@ -163,10 +163,10 @@ class BackblazeProvider(BaseStorageProvider):
             return files
 
         except ClientError as e:
-            logger.error(f"❌ Failed to list files: {e}")
+            logger.error(f"[ERROR] Failed to list files: {e}")
             return []
         except Exception as e:
-            logger.error(f"❌ Error listing files: {e}")
+            logger.error(f"[ERROR] Error listing files: {e}")
             return []
 
     def delete_file(self, remote_path: str) -> bool:
@@ -177,14 +177,14 @@ class BackblazeProvider(BaseStorageProvider):
                 Key=remote_path
             )
 
-            logger.info(f"✅ Deleted: {remote_path}")
+            logger.info(f"[OK] Deleted: {remote_path}")
             return True
 
         except ClientError as e:
-            logger.error(f"❌ Delete failed: {e}")
+            logger.error(f"[ERROR] Delete failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error deleting file: {e}")
+            logger.error(f"[ERROR] Error deleting file: {e}")
             return False
 
     def file_exists(self, remote_path: str) -> bool:
@@ -199,10 +199,10 @@ class BackblazeProvider(BaseStorageProvider):
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
                 return False
-            logger.error(f"❌ Error checking file: {e}")
+            logger.error(f"[ERROR] Error checking file: {e}")
             return False
         except Exception as e:
-            logger.error(f"❌ Error checking file existence: {e}")
+            logger.error(f"[ERROR] Error checking file existence: {e}")
             return False
 
 
@@ -221,7 +221,7 @@ if __name__ == "__main__":
 
     # Connect
     if provider.connect():
-        print("✅ Connected to Backblaze!")
+        print("[OK] Connected to Backblaze!")
 
         # List files
         files = provider.list_files()

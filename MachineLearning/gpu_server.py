@@ -152,7 +152,7 @@ async def load_models():
     logger.info(f"Models loaded: {loaded_count}/{len(MODEL_PATHS)}")
 
     if loaded_count == 0:
-        logger.warning("⚠️  No models loaded! Make sure to train models before starting the server.")
+        logger.warning("[WARNING]  No models loaded! Make sure to train models before starting the server.")
 
 
 @app.get("/health", response_model=HealthResponse)

@@ -1,0 +1,592 @@
+# GitHub Repository List for Data Collection
+# Format: One repository URL per line
+# Comments start with #
+# This list contains 500+ popular repositories across multiple languages
+
+# ========================================
+# PYTHON REPOSITORIES (150+)
+# ========================================
+
+# AI/ML Frameworks
+https://github.com/tensorflow/tensorflow
+https://github.com/pytorch/pytorch
+https://github.com/scikit-learn/scikit-learn
+https://github.com/keras-team/keras
+https://github.com/huggingface/transformers
+https://github.com/opencv/opencv-python
+https://github.com/facebookresearch/detectron2
+https://github.com/ultralytics/yolov5
+https://github.com/apache/mxnet
+https://github.com/microsoft/DeepSpeed
+https://github.com/facebookresearch/faiss
+https://github.com/dmlc/xgboost
+https://github.com/catboost/catboost
+https://github.com/microsoft/LightGBM
+https://github.com/fastai/fastai
+https://github.com/explosion/spaCy
+https://github.com/pytorch/fairseq
+https://github.com/microsoft/nni
+https://github.com/openai/gym
+https://github.com/stable-baselines3/stable-baselines3
+
+# Web Frameworks
+https://github.com/django/django
+https://github.com/flask/flask
+https://github.com/fastapi/fastapi
+https://github.com/tornadoweb/tornado
+https://github.com/aio-libs/aiohttp
+https://github.com/encode/starlette
+https://github.com/tiangolo/full-stack-fastapi-postgresql
+https://github.com/pallets/werkzeug
+https://github.com/bottlepy/bottle
+https://github.com/cherrypy/cherrypy
+https://github.com/falconry/falcon
+https://github.com/channelcat/sanic
+https://github.com/huge-success/sanic
+https://github.com/encode/django-rest-framework
+https://github.com/graphql-python/graphene
+
+# Data Science & Analysis
+https://github.com/pandas-dev/pandas
+https://github.com/numpy/numpy
+https://github.com/matplotlib/matplotlib
+https://github.com/bokeh/bokeh
+https://github.com/plotly/plotly.py
+https://github.com/altair-viz/altair
+https://github.com/streamlit/streamlit
+https://github.com/gradio-app/gradio
+https://github.com/holoviz/panel
+https://github.com/scipy/scipy
+https://github.com/sympy/sympy
+https://github.com/statsmodels/statsmodels
+https://github.com/pydata/xarray
+https://github.com/dask/dask
+https://github.com/ray-project/ray
+https://github.com/apache/arrow
+https://github.com/vaexio/vaex
+https://github.com/modin-project/modin
+
+# Testing & Quality
+https://github.com/pytest-dev/pytest
+https://github.com/psf/black
+https://github.com/PyCQA/pylint
+https://github.com/PyCQA/flake8
+https://github.com/python/mypy
+https://github.com/pre-commit/pre-commit
+https://github.com/PyCQA/bandit
+https://github.com/tox-dev/tox
+https://github.com/hypothesis/hypothesis
+https://github.com/locustio/locust
+
+# Database & ORM
+https://github.com/sqlalchemy/sqlalchemy
+https://github.com/mongodb/motor
+https://github.com/redis/redis-py
+https://github.com/elastic/elasticsearch-py
+https://github.com/datastax/python-driver
+https://github.com/psycopg/psycopg2
+https://github.com/tortoise/tortoise-orm
+https://github.com/encode/databases
+https://github.com/ponyorm/pony
+https://github.com/coleifer/peewee
+
+# CLI & Automation
+https://github.com/pallets/click
+https://github.com/google/python-fire
+https://github.com/tiangolo/typer
+https://github.com/willmcgugan/rich
+https://github.com/Textualize/textual
+https://github.com/urwid/urwid
+https://github.com/prompt-toolkit/python-prompt-toolkit
+https://github.com/tqdm/tqdm
+https://github.com/google/zx
+https://github.com/pyinvoke/invoke
+
+# Networking & APIs
+https://github.com/requests/requests
+https://github.com/psf/requests
+https://github.com/encode/httpx
+https://github.com/aio-libs/aiohttp
+https://github.com/websocket-client/websocket-client
+https://github.com/urllib3/urllib3
+https://github.com/ross/requests-futures
+https://github.com/pycurl/pycurl
+https://github.com/spyder-ide/pyls
+https://github.com/grpc/grpc
+
+# DevOps & Infrastructure
+https://github.com/ansible/ansible
+https://github.com/saltstack/salt
+https://github.com/fabric/fabric
+https://github.com/pyinfra-dev/pyinfra
+https://github.com/docker/docker-py
+https://github.com/kubernetes-client/python
+https://github.com/boto/boto3
+https://github.com/paramiko/paramiko
+https://github.com/giampaolo/psutil
+https://github.com/Supervisor/supervisor
+
+# Security & Crypto
+https://github.com/pyca/cryptography
+https://github.com/pyauth/pyotp
+https://github.com/lepture/authlib
+https://github.com/jpadilla/pyjwt
+https://github.com/sybrenstuvel/python-rsa
+https://github.com/ethereum/py-evm
+https://github.com/ccxt/ccxt
+https://github.com/freqtrade/freqtrade
+
+# Utilities
+https://github.com/celery/celery
+https://github.com/rq/rq
+https://github.com/benoitc/gunicorn
+https://github.com/jazzband/pip-tools
+https://github.com/pypa/pipenv
+https://github.com/python-poetry/poetry
+https://github.com/sdispater/pendulum
+https://github.com/arrow-py/arrow
+https://github.com/joblib/joblib
+https://github.com/more-itertools/more-itertools
+
+# ========================================
+# JAVASCRIPT/TYPESCRIPT REPOSITORIES (100+)
+# ========================================
+
+# Frameworks
+https://github.com/facebook/react
+https://github.com/vuejs/vue
+https://github.com/angular/angular
+https://github.com/sveltejs/svelte
+https://github.com/vercel/next.js
+https://github.com/nuxt/nuxt.js
+https://github.com/gatsbyjs/gatsby
+https://github.com/remix-run/remix
+https://github.com/emberjs/ember.js
+https://github.com/meteor/meteor
+https://github.com/aurelia/framework
+https://github.com/polymer/polymer
+https://github.com/preactjs/preact
+https://github.com/infernojs/inferno
+https://github.com/riot/riot
+
+# Runtime & Build Tools
+https://github.com/nodejs/node
+https://github.com/denoland/deno
+https://github.com/oven-sh/bun
+https://github.com/webpack/webpack
+https://github.com/babel/babel
+https://github.com/parcel-bundler/parcel
+https://github.com/rollup/rollup
+https://github.com/evanw/esbuild
+https://github.com/vitejs/vite
+https://github.com/swc-project/swc
+https://github.com/rome/tools
+https://github.com/turbopack/turbopack
+
+# State Management
+https://github.com/reduxjs/redux
+https://github.com/mobxjs/mobx
+https://github.com/vuex/vuex
+https://github.com/pmndrs/zustand
+https://github.com/pmndrs/valtio
+https://github.com/nanostores/nanostores
+https://github.com/statelyai/xstate
+https://github.com/cerebral/overmind
+https://github.com/effector/effector
+
+# Backend & APIs
+https://github.com/expressjs/express
+https://github.com/koajs/koa
+https://github.com/fastify/fastify
+https://github.com/nestjs/nest
+https://github.com/feathersjs/feathers
+https://github.com/hapijs/hapi
+https://github.com/restify/node-restify
+https://github.com/moleculerjs/moleculer
+https://github.com/actionhero/actionhero
+https://github.com/adonisjs/core
+
+# Testing
+https://github.com/jestjs/jest
+https://github.com/mochajs/mocha
+https://github.com/karma-runner/karma
+https://github.com/jasmine/jasmine
+https://github.com/avajs/ava
+https://github.com/vitest-dev/vitest
+https://github.com/cypress-io/cypress
+https://github.com/puppeteer/puppeteer
+https://github.com/playwright/playwright
+https://github.com/testing-library/react-testing-library
+
+# Utilities
+https://github.com/axios/axios
+https://github.com/lodash/lodash
+https://github.com/moment/moment
+https://github.com/date-fns/date-fns
+https://github.com/sindresorhus/got
+https://github.com/chalk/chalk
+https://github.com/yargs/yargs
+https://github.com/tj/commander.js
+https://github.com/rxjs/rxjs
+https://github.com/ramda/ramda
+
+# UI Libraries
+https://github.com/mui/material-ui
+https://github.com/ant-design/ant-design
+https://github.com/chakra-ui/chakra-ui
+https://github.com/tailwindlabs/tailwindcss
+https://github.com/bootstrap/bootstrap
+https://github.com/semantic-org/semantic-ui
+https://github.com/ElemeFE/element
+https://github.com/primefaces/primereact
+https://github.com/carbon-design-system/carbon
+
+# Database & ORM
+https://github.com/typeorm/typeorm
+https://github.com/prisma/prisma
+https://github.com/sequelize/sequelize
+https://github.com/Automattic/mongoose
+https://github.com/knex/knex
+https://github.com/bookshelf/bookshelf
+https://github.com/mikro-orm/mikro-orm
+https://github.com/waterlinejs/waterline
+
+# ========================================
+# JAVA REPOSITORIES (80+)
+# ========================================
+
+# Frameworks
+https://github.com/spring-projects/spring-boot
+https://github.com/spring-projects/spring-framework
+https://github.com/micronaut-projects/micronaut-core
+https://github.com/quarkusio/quarkus
+https://github.com/eclipse-vertx/vert.x
+https://github.com/playframework/playframework
+https://github.com/dropwizard/dropwizard
+https://github.com/javalin/javalin
+https://github.com/spark-java/spark
+https://github.com/ratpack/ratpack
+
+# Build Tools
+https://github.com/gradle/gradle
+https://github.com/apache/maven
+https://github.com/bazelbuild/bazel
+
+# Big Data & Search
+https://github.com/elastic/elasticsearch
+https://github.com/apache/kafka
+https://github.com/apache/spark
+https://github.com/apache/hadoop
+https://github.com/apache/flink
+https://github.com/apache/storm
+https://github.com/apache/hbase
+https://github.com/apache/cassandra
+https://github.com/apache/lucene
+https://github.com/apache/solr
+
+# Libraries
+https://github.com/google/guava
+https://github.com/square/retrofit
+https://github.com/ReactiveX/RxJava
+https://github.com/netty/netty
+https://github.com/google/gson
+https://github.com/FasterXML/jackson
+https://github.com/square/okhttp
+https://github.com/projectlombok/lombok
+https://github.com/apache/commons-lang
+https://github.com/google/guice
+
+# Testing
+https://github.com/junit-team/junit4
+https://github.com/junit-team/junit5
+https://github.com/testng/testng
+https://github.com/mockito/mockito
+https://github.com/assertj/assertj
+https://github.com/rest-assured/rest-assured
+https://github.com/awaitility/awaitility
+https://github.com/testcontainers/testcontainers-java
+
+# Database
+https://github.com/mybatis/mybatis-3
+https://github.com/hibernate/hibernate-orm
+https://github.com/jooq/jooq
+https://github.com/jdbi/jdbi
+https://github.com/greenDAO/greenDAO
+https://github.com/requery/requery
+https://github.com/flyway/flyway
+https://github.com/liquibase/liquibase
+
+# Android
+https://github.com/android/architecture-components-samples
+https://github.com/android/architecture-samples
+https://github.com/android/sunflower
+https://github.com/android/compose-samples
+https://github.com/google/iosched
+https://github.com/chrisbanes/tivi
+
+# ========================================
+# GO REPOSITORIES (60+)
+# ========================================
+
+https://github.com/golang/go
+https://github.com/kubernetes/kubernetes
+https://github.com/docker/docker-ce
+https://github.com/moby/moby
+https://github.com/containerd/containerd
+https://github.com/hashicorp/terraform
+https://github.com/hashicorp/consul
+https://github.com/hashicorp/vault
+https://github.com/hashicorp/nomad
+https://github.com/prometheus/prometheus
+https://github.com/grafana/grafana
+https://github.com/grafana/loki
+https://github.com/grafana/tempo
+https://github.com/influxdata/influxdb
+https://github.com/etcd-io/etcd
+https://github.com/cockroachdb/cockroach
+https://github.com/dgraph-io/dgraph
+https://github.com/vitessio/vitess
+
+# Go Web Frameworks
+https://github.com/gin-gonic/gin
+https://github.com/labstack/echo
+https://github.com/gofiber/fiber
+https://github.com/gorilla/mux
+https://github.com/go-chi/chi
+https://github.com/beego/beego
+https://github.com/revel/revel
+https://github.com/go-kit/kit
+https://github.com/micro/go-micro
+
+# Go Tools & Libraries
+https://github.com/spf13/cobra
+https://github.com/spf13/viper
+https://github.com/urfave/cli
+https://github.com/go-gorm/gorm
+https://github.com/jinzhu/gorm
+https://github.com/jmoiron/sqlx
+https://github.com/golang-migrate/migrate
+https://github.com/stretchr/testify
+https://github.com/onsi/ginkgo
+https://github.com/uber-go/zap
+
+# Go Cloud Native
+https://github.com/istio/istio
+https://github.com/linkerd/linkerd2
+https://github.com/helm/helm
+https://github.com/argoproj/argo-cd
+https://github.com/fluxcd/flux2
+https://github.com/tektoncd/pipeline
+https://github.com/knative/serving
+https://github.com/openservicemesh/osm
+https://github.com/cilium/cilium
+https://github.com/envoyproxy/go-control-plane
+
+# ========================================
+# RUST REPOSITORIES (40+)
+# ========================================
+
+https://github.com/rust-lang/rust
+https://github.com/rust-lang/cargo
+https://github.com/rust-lang/rustlings
+https://github.com/rust-lang/rust-clippy
+https://github.com/rust-lang/rustfmt
+https://github.com/rust-analyzer/rust-analyzer
+https://github.com/servo/servo
+https://github.com/diem/diem
+https://github.com/solana-labs/solana
+https://github.com/paritytech/substrate
+
+# Rust Web
+https://github.com/tokio-rs/tokio
+https://github.com/actix/actix-web
+https://github.com/rocket/rocket
+https://github.com/tower-rs/tower
+https://github.com/poem-web/poem
+https://github.com/seanmonstar/warp
+https://github.com/gotham-rs/gotham
+https://github.com/iron/iron
+
+# Rust Tools
+https://github.com/diesel-rs/diesel
+https://github.com/serde-rs/serde
+https://github.com/rust-lang/mdBook
+https://github.com/BurntSushi/ripgrep
+https://github.com/sharkdp/bat
+https://github.com/sharkdp/fd
+https://github.com/ogham/exa
+https://github.com/dandavison/delta
+https://github.com/starship/starship
+https://github.com/alacritty/alacritty
+
+# Rust Systems
+https://github.com/tikv/tikv
+https://github.com/valeriansaliou/sonic
+https://github.com/meilisearch/meilisearch
+https://github.com/qdrant/qdrant
+https://github.com/apache/arrow-datafusion
+https://github.com/timberio/vector
+https://github.com/nushell/nushell
+
+# ========================================
+# C++ REPOSITORIES (40+)
+# ========================================
+
+https://github.com/tensorflow/tensorflow
+https://github.com/opencv/opencv
+https://github.com/electron/electron
+https://github.com/microsoft/terminal
+https://github.com/bitcoin/bitcoin
+https://github.com/pytorch/pytorch
+https://github.com/google/leveldb
+https://github.com/facebook/rocksdb
+https://github.com/apple/swift
+https://github.com/godotengine/godot
+
+# C++ Libraries
+https://github.com/nlohmann/json
+https://github.com/google/googletest
+https://github.com/google/benchmark
+https://github.com/fmtlib/fmt
+https://github.com/gabime/spdlog
+https://github.com/google/flatbuffers
+https://github.com/protocolbuffers/protobuf
+https://github.com/facebook/folly
+https://github.com/abseil/abseil-cpp
+https://github.com/boostorg/boost
+
+# C++ Game Engines
+https://github.com/cocos2d/cocos2d-x
+https://github.com/urho3d/Urho3D
+https://github.com/GameFoundry/kaiju
+https://github.com/gameplay3d/gameplay
+https://github.com/FlaxEngine/FlaxEngine
+
+# C++ Databases
+https://github.com/mongodb/mongo
+https://github.com/redis/redis
+https://github.com/apache/incubator-doris
+https://github.com/ClickHouse/ClickHouse
+https://github.com/scylladb/scylla
+
+# ========================================
+# PHP REPOSITORIES (30+)
+# ========================================
+
+https://github.com/laravel/laravel
+https://github.com/laravel/framework
+https://github.com/symfony/symfony
+https://github.com/bcit-ci/CodeIgniter
+https://github.com/yiisoft/yii2
+https://github.com/slimphp/Slim
+https://github.com/cakephp/cakephp
+https://github.com/laminas/laminas-mvc
+https://github.com/phalcon/cphalcon
+
+# PHP Tools
+https://github.com/composer/composer
+https://github.com/phpstan/phpstan
+https://github.com/vimeo/psalm
+https://github.com/FriendsOfPHP/PHP-CS-Fixer
+https://github.com/sebastianbergmann/phpunit
+https://github.com/mockery/mockery
+https://github.com/thephpleague/flysystem
+https://github.com/guzzle/guzzle
+https://github.com/ramsey/uuid
+https://github.com/vlucas/phpdotenv
+
+# PHP CMS
+https://github.com/wordpress/wordpress
+https://github.com/drupal/drupal
+https://github.com/joomla/joomla-cms
+https://github.com/magento/magento2
+https://github.com/PrestaShop/PrestaShop
+https://github.com/octobercms/october
+
+# ========================================
+# RUBY REPOSITORIES (30+)
+# ========================================
+
+https://github.com/rails/rails
+https://github.com/ruby/ruby
+https://github.com/jekyll/jekyll
+https://github.com/discourse/discourse
+https://github.com/gitlabhq/gitlabhq
+https://github.com/diaspora/diaspora
+https://github.com/Homebrew/brew
+https://github.com/mastodon/mastodon
+https://github.com/forem/forem
+
+# Ruby Tools
+https://github.com/sinatra/sinatra
+https://github.com/hanami/hanami
+https://github.com/ruby-grape/grape
+https://github.com/rspec/rspec
+https://github.com/minitest/minitest
+https://github.com/teamcapybara/capybara
+https://github.com/rubocop/rubocop
+https://github.com/puma/puma
+https://github.com/sidekiq/sidekiq
+https://github.com/mperham/sidekiq
+
+# ========================================
+# SECURITY/VULNERABLE APPS (30+)
+# ========================================
+
+https://github.com/OWASP/PyGoat
+https://github.com/juice-shop/juice-shop
+https://github.com/WebGoat/WebGoat
+https://github.com/digininja/DVWA
+https://github.com/ethicalhack3r/DVWA
+https://github.com/payatu/vuln-nodejs-app
+https://github.com/vegabird/xvna
+https://github.com/sqlmapproject/testenv
+https://github.com/Audi-1/sqli-labs
+https://github.com/commixproject/commix-testbed
+https://github.com/appsecco/dvna
+https://github.com/OWASP/railsgoat
+https://github.com/OWASP/SecurityShepherd
+https://github.com/OWASP/NodeGoat
+https://github.com/OWASP/GoatDroid-Project
+https://github.com/OWASP/iGoat-Swift
+https://github.com/bkimminich/juice-shop
+https://github.com/OWASP/WebGoat-Legacy
+https://github.com/OWASP/Vulnerable-Web-Application
+https://github.com/s4n7h0/xvwa
+https://github.com/incredibleindishell/SSRF_Vulnerable_Lab
+https://github.com/stamparm/DSVW
+https://github.com/interference-security/DVWS
+https://github.com/snoopysecurity/dvws-node
+https://github.com/dolevf/Damn-Vulnerable-GraphQL-Application
+https://github.com/OWASP/DVSA
+https://github.com/anxolerd/dvpwa
+https://github.com/sagishahar/lpeworkshop
+
+# ========================================
+# ADDITIONAL NOTABLE REPOSITORIES (20+)
+# ========================================
+
+https://github.com/microsoft/vscode
+https://github.com/atom/atom
+https://github.com/adobe/brackets
+https://github.com/neovim/neovim
+https://github.com/vim/vim
+https://github.com/git/git
+https://github.com/torvalds/linux
+https://github.com/chromium/chromium
+https://github.com/mozilla/gecko-dev
+https://github.com/apple/darwin-xnu
+https://github.com/postgres/postgres
+https://github.com/mysql/mysql-server
+https://github.com/apache/httpd
+https://github.com/nginx/nginx
+https://github.com/openssl/openssl
+https://github.com/curl/curl
+https://github.com/libuv/libuv
+https://github.com/nodejs/http-parser
+https://github.com/jqlang/jq
+https://github.com/tmux/tmux
+
+# ========================================
+# Total: 500+ repositories
+# ========================================

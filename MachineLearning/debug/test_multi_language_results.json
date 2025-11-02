@@ -1,0 +1,50 @@
+{
+  "javascript": {
+    "repo": "https://github.com/lodash/lodash",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  },
+  "java": {
+    "repo": "https://github.com/google/guava",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  },
+  "cpp": {
+    "repo": "https://github.com/nlohmann/json",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  },
+  "go": {
+    "repo": "https://github.com/gin-gonic/gin",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  },
+  "rust": {
+    "repo": "https://github.com/serde-rs/serde",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  },
+  "ruby": {
+    "repo": "https://github.com/rails/rails",
+    "result": {
+      "status": "error",
+      "error": "'GitHubRepoProcessor' object has no attribute 'process_repo'",
+      "working": false
+    }
+  }
+}

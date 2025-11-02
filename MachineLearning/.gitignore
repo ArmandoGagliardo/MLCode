@@ -80,8 +80,14 @@ Thumbs.db
 # Env / secrets
 .env
 .env.*
+*.env
+gpu_instance.env
 secrets.json
 credentials/
+# New unified config env files
+config/.env*
+config/*.env
+config_backup/
 
 # Compiled extensions / binaries
 *.so

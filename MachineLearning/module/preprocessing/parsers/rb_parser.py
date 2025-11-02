@@ -19,7 +19,7 @@ class RubyParser(BaseParser):
             func_code = self._extract_full_function(code[start:])
 
             doc_clean = self._clean_docstring(comment)
-            prompt = doc_clean.stript()
+            prompt = doc_clean.strip()
 
             if not prompt:
                 prompt = doc_clean if doc_clean else f"Scrivi una funzione C++ chiamata '{name}' con argomenti: {args.strip()}"

@@ -27,7 +27,7 @@ from datasets import load_dataset
 from transformers import get_scheduler
 from tqdm.auto import tqdm
 from torch.nn.utils.rnn import pad_sequence
-
+from config import DEFAULT_BATCH_SIZE, DEFAULT_EPOCHS, DEFAULT_LEARNING_RATE
 
 # 🔧 Logging su file
 logging.basicConfig(
@@ -133,9 +133,9 @@ class AdvancedTrainerClassifier:
         self,
         dataset_path,
         model_save_path,
-        batch_size=4,
-        num_epochs=4,
-        learning_rate=5e-5,
+        batch_size=DEFAULT_BATCH_SIZE,
+        num_epochs=DEFAULT_EPOCHS,
+        learning_rate=DEFAULT_LEARNING_RATE,
         accumulation_steps=2,
         early_stopping_patience=2
     ):

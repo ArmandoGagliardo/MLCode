@@ -8,6 +8,7 @@ from .parsers.base_parser import BaseParser
 from .function_parser import FunctionExtractor
 from typing import List, Dict, Optional
 import logging
+import textwrap
 
 logger = logging.getLogger(__name__)
 
@@ -42,21 +43,16 @@ class UniversalParser(BaseParser):
             try:
                 # Dynamically import the language module
                 module = __import__(module_name)
-
-                # Get the language function and wrap it with Language
+                # Get the language function - returns PyCapsule
                 if hasattr(module, 'language'):
-                    # Wrap the PyCapsule with Language class
-                    self.languages[lang_key] = Language(module.language())
-                    logger.info(f"[OK] Loaded {display_name} parser")
-                elif hasattr(module, 'LANGUAGE'):
-                    self.languages[lang_key] = Language(module.LANGUAGE)
+                    lang_capsule = module.language()
+                    # Wrap PyCapsule with Language class for new API
+                    self.languages[lang_key] = Language(lang_capsule)
                     logger.info(f"[OK] Loaded {display_name} parser")
                 else:
-                    logger.warning(f"[WARNING]  Could not find language function in {module_name}")
-                    continue
-
+                    logger.warning(f"[WARNING] {display_name}: no language() function found")
             except ImportError:
-                logger.warning(f"[WARNING]  {display_name} parser not available. Install {module_name}")
+                logger.warning(f"[WARNING] {display_name} parser not available. Install {module_name}")
             except Exception as e:
                 logger.error(f"[ERROR] Error loading {display_name}: {e}")
 
@@ -82,8 +78,9 @@ class UniversalParser(BaseParser):
             return []
 
         try:
-            # New API: Parser constructor takes the language directly
-            parser = Parser(lang)
+            parser = Parser()
+            # Modern tree-sitter API (0.20+): use parser.language instead of parser.set_language
+            parser.language = lang
             tree = parser.parse(bytes(code, "utf8"))
             root = tree.root_node
 
@@ -115,46 +112,85 @@ class UniversalParser(BaseParser):
         def walk(node: Node):
             """Recursively walk the AST and extract target nodes."""
 
+            # Extract if this is a target node type
+            extracted = False
             if node.type in target_kinds:
                 # Skip error nodes
-                if node.is_missing or node.has_error:
-                    return
+                if not (node.is_missing or node.has_error):
+                    # Extract function/class information
+                    info = extractor.extract(node, language)
+                    if info and info.get("name") and info.get("body"):
+                        # Validate function name
+                        name = info["name"]
+                        if name.isidentifier() and not any(c in name for c in "():") and len(name) <= 50:
+                            # Valid extraction - add to results
+                            extracted = True
+                            
+                            # Determine task type
+                            task_type = "class_extraction" if "class" in node.type else "code_generation"
 
-                # Extract function/class information
-                info = extractor.extract(node, language)
-                if not info:
-                    return
+                            # Create prompt (in English for consistency)
+                            prompt = info.get("doc", "")
+                            if not prompt:
+                                args = info.get("args", "")
+                                prompt = f"Write a {language} function called '{name}'"
+                                if args:
+                                    prompt += f" with arguments: {args}"
 
-                # Validate extracted information
-                if not info.get("name") or not info.get("body"):
-                    return
+                            # Prepare full function code with proper indentation
+                            signature = info.get("signature", "")
+                            body = info["body"]
+                            
+                            # For Python, combine signature and body correctly
+                            if language == "python" and signature:
+                                # The body might have mixed indentation (e.g., docstring at level 0, code at level 4)
+                                # We need to ensure all lines have consistent 4-space indentation
+                                body_lines = body.split('\n')
+                                
+                                # Find minimum non-zero indentation (excluding first line if it's a docstring)
+                                min_indent = None
+                                for i, line in enumerate(body_lines):
+                                    if line.strip() and not (i == 0 and line.strip().startswith('"""')):
+                                        leading = len(line) - len(line.lstrip())
+                                        if leading > 0:
+                                            if min_indent is None or leading < min_indent:
+                                                min_indent = leading
+                                
+                                if min_indent is None:
+                                    min_indent = 0
+                                
+                                # Reindent: remove min_indent, add 4 spaces
+                                indented_lines = []
+                                for line in body_lines:
+                                    if line.strip():
+                                        # Remove min_indent if present
+                                        if len(line) >= min_indent and line[:min_indent].isspace():
+                                            clean_line = line[min_indent:]
+                                        else:
+                                            clean_line = line.lstrip()
+                                        indented_lines.append('    ' + clean_line)
+                                    else:
+                                        indented_lines.append('')
+                                
+                                indented_body = '\n'.join(indented_lines).rstrip()
+                                full_code = signature + '\n' + indented_body
+                            else:
+                                full_code = (signature + " " + body).strip()
+                            
+                            # Add to results with both old and new formats for compatibility
+                            results.append({
+                                "task_type": task_type,
+                                "language": language,
+                                "func_name": name,
+                                "name": name,  # Also add 'name' field for github_repo_processor
+                                "body": body,  # Keep original body for reference
+                                "signature": signature,
+                                "input": prompt.strip(),
+                                "output": full_code.strip()
+                            })
 
-                # Validate function name
-                name = info["name"]
-                if not name.isidentifier() or any(c in name for c in "():") or len(name) > 50:
-                    return
-
-                # Determine task type
-                task_type = "class_extraction" if "class" in node.type else "code_generation"
-
-                # Create prompt (in English for consistency)
-                prompt = info.get("doc", "")
-                if not prompt:
-                    args = info.get("args", "")
-                    prompt = f"Write a {language} function called '{name}'"
-                    if args:
-                        prompt += f" with arguments: {args}"
-
-                # Add to results
-                results.append({
-                    "task_type": task_type,
-                    "language": language,
-                    "func_name": name,
-                    "input": prompt.strip(),
-                    "output": (info.get("signature", "") + " " + info["body"]).strip()
-                })
-
-            # Recursively process children
+            # Always recursively process children, even if extraction failed
+            # This allows finding nested functions/methods
             for child in node.children:
                 walk(child)
 

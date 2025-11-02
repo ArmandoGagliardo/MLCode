@@ -123,6 +123,37 @@ class DigitalOceanProvider(BaseStorageProvider):
             logger.error(f"Error uploading file: {e}")
             return False
 
+    def upload_file_content(
+        self,
+        remote_path: str,
+        content: str,
+        metadata: Optional[Dict] = None
+    ) -> bool:
+        """Upload content directly to DigitalOcean Spaces without saving to disk first"""
+        try:
+            extra_args = {'ACL': 'private'}  # Default to private
+
+            if metadata:
+                extra_args['Metadata'] = metadata
+
+            # Upload string content as bytes
+            self.client.put_object(
+                Bucket=self.bucket_name,
+                Key=remote_path,
+                Body=content.encode('utf-8'),
+                **extra_args
+            )
+
+            logger.debug(f"Uploaded content to: {remote_path}")
+            return True
+
+        except ClientError as e:
+            logger.error(f"Upload failed: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error uploading content: {e}")
+            return False
+
     def download_file(
         self,
         remote_path: str,

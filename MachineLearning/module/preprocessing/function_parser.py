@@ -11,7 +11,9 @@ class FunctionExtractor:
             return self._extract_java(node)
         elif language == "python":
             return self._extract_python(node)
-        elif language in {"cpp", "go", "php", "javascript"}:
+        elif language == "rust":
+            return self._extract_rust(node)
+        elif language in {"cpp", "go", "php", "javascript", "ruby"}:
             return self._extract_c_family(node)
         else:
             return {}
@@ -65,9 +67,6 @@ class FunctionExtractor:
         # Pulisci il testo finale
         doc = " ".join(doc_lines)
 
-        if doc:
-            print(f"🧠 Docstring trovata → {doc}")
-
         # Scarta descrizioni banali
         if not doc or len(doc) < 10 or doc.lower() in {
             "main", "debug", "wfs", "ここから", "list", "math class", "output sample"
@@ -99,7 +98,7 @@ class FunctionExtractor:
         return info
 
     def _extract_python(self, node: Node):
-        info = {"kind": node.type}
+        info = {"kind": node.type, "language": "python"}
 
         for child in node.named_children:
             if not node.is_named or node.is_missing:
@@ -113,7 +112,7 @@ class FunctionExtractor:
                         info["name"] = m.group(1)
             elif child.type == "parameters":
                 if not info.get("name") or not info["name"].isidentifier():
-                    return None  # Scarta o marca come da rivedere
+                    return None  # Scarta o marca da rivedere
                 info["args"] = self._text(child)
             elif child.type == "block":
                 info["body"] = self._text(child)
@@ -136,7 +135,7 @@ class FunctionExtractor:
                 args = self._text(n)
             elif n.type == "type" and not return_type:
                 return_type = self._text(n)
-            elif n.type == "compound_statement" and not body:
+            elif n.type in {"compound_statement", "block", "statement_block"} and not body:  # Added 'block' for Go, 'statement_block' for JS
                 body = self._text(n)
             for c in n.children:
                 find(c)
@@ -150,12 +149,89 @@ class FunctionExtractor:
         info["doc"] = self._extract_docstring(node)
         return info
 
+    def _extract_rust(self, node: Node):
+        """Extract Rust function information from function_item node"""
+        info = {"kind": node.type, "language": "rust"}
+        name = None
+        args = None
+        body = None
+        return_type = None
+        visibility = None
+
+        def find(n):
+            nonlocal name, args, body, return_type, visibility
+            if n.type == "identifier" and not name:
+                name = self._text(n)
+            elif n.type == "parameters" and not args:
+                args = self._text(n)
+            elif n.type == "block" and not body:
+                body = self._text(n)
+            elif n.type == "visibility_modifier" and not visibility:
+                visibility = self._text(n)
+            # Return type comes after -> in Rust
+            elif n.type in {"primitive_type", "type_identifier", "generic_type", "reference_type"} and not return_type:
+                # Check if previous sibling is ->
+                parent = n.parent
+                if parent:
+                    idx = parent.children.index(n)
+                    if idx > 0 and parent.children[idx-1].type == "->":
+                        return_type = self._text(n)
+            
+            for c in n.children:
+                find(c)
+
+        find(node)
+        info["name"] = name or "function"
+        info["args"] = args or "()"
+        info["body"] = body or ""
+        info["return_type"] = return_type or ""
+        info["visibility"] = visibility or ""
+        info["signature"] = self._build_rust_signature(info)
+        info["doc"] = self._extract_docstring(node)
+        return info
+
+    def _build_rust_signature(self, info):
+        """Build Rust function signature"""
+        parts = []
+        
+        # Add visibility (pub, pub(crate), etc)
+        if info.get("visibility"):
+            parts.append(info["visibility"])
+        
+        # Add fn keyword
+        parts.append("fn")
+        
+        # Add name with parameters
+        if info.get("name"):
+            name_with_args = info["name"] + (info.get("args") or "()")
+            parts.append(name_with_args)
+        
+        # Add return type if present
+        if info.get("return_type"):
+            parts.append("->")
+            parts.append(info["return_type"])
+        
+        return " ".join(parts)
+
     def _build_signature(self, info):
         parts = []
+        
+        # Add language-specific keyword (e.g., 'def' for Python)
+        if info.get("language") == "python" and info.get("kind") == "function_definition":
+            parts.append("def")
+        
         if "modifiers" in info:
             parts.extend(info["modifiers"])
         if info.get("return_type"):
             parts.append(info["return_type"])
         if info.get("name"):
-            parts.append(info["name"] + (info.get("args") or "()"))
-        return " ".join(parts)
+            name_with_args = info["name"] + (info.get("args") or "()")
+            parts.append(name_with_args)
+        
+        signature = " ".join(parts)
+        
+        # Add colon for Python (without space before it)
+        if info.get("language") == "python":
+            signature += ":"
+        
+        return signature
