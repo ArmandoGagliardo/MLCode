@@ -61,7 +61,7 @@ class RepoCleanup:
         # Path corretto: stesso path dello storage cloud ma con local_backup
         # Importato da config.py per mantenere coerenza
         self.dataset_dirs = [
-            LOCAL_DATASET_PATH,  # datasets/local_backup/code_generation
+            LOCAL_DATASET_PATH,  # dataset_storage/local_backup/code_generation
             Path("data/datasets/code_generation"),  # data/datasets/code_generation (scaricati da cloud)
         ]
         

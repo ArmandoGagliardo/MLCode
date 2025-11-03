@@ -55,9 +55,9 @@ class StorageManager:
         self.connected = False
 
         # Default paths
-        self.local_dataset_dir = self.config.get('local_dataset_dir', 'data/datasets')
+        self.local_dataset_dir = self.config.get('local_dataset_dir', 'data/dataset_storage')
         self.local_models_dir = self.config.get('local_models_dir', 'models/saved')
-        self.remote_dataset_prefix = self.config.get('remote_dataset_prefix', 'datasets')
+        self.remote_dataset_prefix = self.config.get('remote_dataset_prefix', 'dataset_storage')
         self.remote_models_prefix = self.config.get('remote_models_prefix', 'models')
 
         # Create local directories
@@ -70,9 +70,9 @@ class StorageManager:
 
         config = {
             'provider_type': provider_type,
-            'local_dataset_dir': os.getenv('LOCAL_DATASET_DIR', 'data/datasets'),
+            'local_dataset_dir': os.getenv('LOCAL_DATASET_DIR', 'data/dataset_storage'),
             'local_models_dir': os.getenv('LOCAL_MODELS_DIR', 'models/saved'),
-            'remote_dataset_prefix': os.getenv('REMOTE_DATASET_PREFIX', 'datasets'),
+            'remote_dataset_prefix': os.getenv('REMOTE_DATASET_PREFIX', 'dataset_storage'),
             'remote_models_prefix': os.getenv('REMOTE_MODELS_PREFIX', 'models'),
             'auto_sync_on_startup': os.getenv('AUTO_SYNC_ON_STARTUP', 'true').lower() == 'true',
             'auto_backup_after_training': os.getenv('AUTO_BACKUP_AFTER_TRAINING', 'true').lower() == 'true',

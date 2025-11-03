@@ -123,12 +123,12 @@ python example_single_repo.py
 Processing: 100%|██████████| 21/21 [00:30<00:00]
 
 ✅ Estratte 225 funzioni
-💾 Salvato: datasets/local_backup/code_generation/requests_20251102_143022_225.json
+💾 Salvato: dataset_storage/local_backup/code_generation/requests_20251102_143022_225.json
 ☁️  Backup cloud: OK
 ```
 
 **File salvato:**
-- Locale: `datasets/local_backup/code_generation/requests_*.json`
+- Locale: `dataset_storage/local_backup/code_generation/requests_*.json`
 - Cloud: `s3://your-space/datasets/code_generation/requests_*.json`
 
 ### 2.2 Crawling Multipli Repository (Batch)

@@ -16,15 +16,15 @@ logger = logging.getLogger(__name__)
 # Base paths
 BASE_PATH = Path(__file__).resolve().parent
 CONFIG_PATH = BASE_PATH / "config"
-DATASET_PATH = BASE_PATH / "datasets"
+DATASET_PATH = BASE_PATH / "dataset_storage"
 MODELS_PATH = BASE_PATH / "models"
 RAW_DATA_PATH = DATASET_PATH / "raw"
 
 # Dataset storage paths (unificati)
-# Cloud: datasets/code_generation/
-# Local: datasets/local_backup/code_generation/
-CLOUD_DATASET_PATH = "datasets/code_generation"
-LOCAL_DATASET_PATH = Path("datasets/local_backup/code_generation")
+# Cloud: dataset_storage/code_generation/
+# Local: dataset_storage/local_backup/code_generation/
+CLOUD_DATASET_PATH = "dataset_storage/code_generation"
+LOCAL_DATASET_PATH = Path("dataset_storage/local_backup/code_generation")
 LOCAL_DATASET_BACKUP_PATH = LOCAL_DATASET_PATH  # Alias for clarity
 
 class Config:
@@ -123,9 +123,9 @@ class Config:
 
         self.config["storage"] = {
             "provider": provider,
-            "local_dataset_dir": os.getenv("LOCAL_DATASET_DIR", "datasets"),
+            "local_dataset_dir": os.getenv("LOCAL_DATASET_DIR", "dataset_storage"),
             "local_models_dir": os.getenv("LOCAL_MODELS_DIR", "models"),
-            "remote_dataset_prefix": os.getenv("REMOTE_DATASET_PREFIX", "datasets"),
+            "remote_dataset_prefix": os.getenv("REMOTE_DATASET_PREFIX", "dataset_storage"),
             "remote_models_prefix": os.getenv("REMOTE_MODELS_PREFIX", "models"),
             "auto_sync_on_startup": os.getenv("AUTO_SYNC_ON_STARTUP", "false").lower() == "true",
             "auto_backup_after_training": os.getenv("AUTO_BACKUP_AFTER_TRAINING", "false").lower() == "true",
@@ -320,7 +320,7 @@ SUPPORTED_EXTENSIONS = {
 }
 
 MODEL_PATHS = {
-    "code_generation": ("Salesforce/codet5-base", str(DATASET_PATH / "dataset_migrated.json")),
+    "code_generation": ("Salesforce/codegen-350M-mono", str(LOCAL_DATASET_PATH / "sample_dataset.jsonl")),
     "text_classification": ("microsoft/codebert-base", str(DATASET_PATH / "dataset_classification_v2.json")),
     "security_classification": ("microsoft/codebert-base", str(DATASET_PATH / "dataset_security.json")),
     "text_generation": ("gpt2", str(DATASET_PATH / "dataset_text_gen.json"))

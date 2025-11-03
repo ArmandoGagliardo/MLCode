@@ -263,7 +263,7 @@ Configura sempre cloud storage per:
 ### 3. **Verifica Qualità Dataset**
 Prima di trainare, controlla che i dataset siano validi:
 ```bash
-python -c "import json; data = json.load(open('datasets/local_backup/code_generation/tensorflow_*.json')); print(f'Esempi: {len(data)}'); print(f'Sample: {data[0]}')"
+python -c "import json; data = json.load(open('dataset_storage/local_backup/code_generation/tensorflow_*.json')); print(f'Esempi: {len(data)}'); print(f'Sample: {data[0]}')"
 ```
 
 ### 4. **Training Incrementale**

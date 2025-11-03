@@ -92,7 +92,7 @@ print(f"Estratte {result['functions_extracted']} funzioni!")
 
 ### Output Locale
 ```
-datasets/local_backup/code_generation/
+dataset_storage/local_backup/code_generation/
 ├── requests_20251102_165542_141.json    # 141 funzioni
 ├── axios_20251102_154320_256.json       # 256 funzioni
 └── ...
@@ -296,7 +296,7 @@ Get-Content datasets\duplicates_cache.json | ConvertFrom-Json
 
 2. **Verifica Output**
    ```bash
-   # Controlla datasets/local_backup/code_generation/
+   # Controlla dataset_storage/local_backup/code_generation/
    # Apri un JSON e verifica la qualità
    ```
 

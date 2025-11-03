@@ -525,7 +525,7 @@ class BulkProcessor:
 
     def save_local_backup(self, data: List[Dict], filename: str):
         """Save dataset locally as backup."""
-        local_path = Path(f"datasets/local_backup/{filename}")
+        local_path = Path(f"dataset_storage/local_backup/{filename}")
         local_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(local_path, 'w') as f:

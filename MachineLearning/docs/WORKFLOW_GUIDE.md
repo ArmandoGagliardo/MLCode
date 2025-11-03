@@ -34,7 +34,7 @@ Questo documento spiega il workflow completo del sistema, dall'estrazione dei da
                                    │
                     ┌──────────────▼──────────────┐
                     │  JSON Dataset Output        │
-                    │  datasets/local_backup/     │
+                    │  dataset_storage/local_backup/     │
                     └──────────────┬──────────────┘
                                    │
                                    ▼
@@ -144,7 +144,7 @@ python main.py
 ```
 
 **Input:** `https://github.com/psf/requests`  
-**Output:** `datasets/local_backup/code_generation/requests_*.json` (225 funzioni)  
+**Output:** `dataset_storage/local_backup/code_generation/requests_*.json` (225 funzioni)  
 **Tempo:** ~2-3 minuti
 
 #### Esempio 2: Bulk Processing
@@ -177,7 +177,7 @@ python example_analyze_output.py
 - ✅ Lunghezza media: 441 caratteri
 - ✅ Qualità: 100% funzioni complete
 
-**Output:** `datasets/local_backup/code_generation/analysis_summary.json`
+**Output:** `dataset_storage/local_backup/code_generation/analysis_summary.json`
 
 ---
 

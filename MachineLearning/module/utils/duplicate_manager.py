@@ -19,7 +19,7 @@ class DuplicateManager:
     Manages duplicate detection for code snippets and functions.
     """
 
-    def __init__(self, storage_path: str = "datasets/duplicates_cache.json"):
+    def __init__(self, storage_path: str = "dataset_storage/duplicates_cache.json"):
         """
         Initialize the duplicate manager.
 

@@ -45,7 +45,7 @@ python verify_system.py
 - `repo_list.txt` - Lista repository da processare
 
 ### Output
-- `datasets/local_backup/code_generation/` - Funzioni estratte (JSON)
+- `dataset_storage/local_backup/code_generation/` - Funzioni estratte (JSON)
 - `logs/` - Log di esecuzione
 - `datasets/duplicates_cache.json` - Cache duplicati
 
@@ -91,7 +91,7 @@ Get-ChildItem -Path datasets\local_backup\code_generation\ -Filter *.json -Recur
     Measure-Object -Sum
 
 # Linux/Mac (con jq)
-find datasets/local_backup/code_generation/ -name "*.json" -exec jq 'length' {} \; | 
+find dataset_storage/local_backup/code_generation/ -name "*.json" -exec jq 'length' {} \; | 
     awk '{s+=$1} END {print s}'
 ```
 
@@ -158,7 +158,7 @@ Modifica in `module/preprocessing/code_quality_filter.py`:
 4. **Verifica Risultati**
    ```bash
    # Controlla file generati
-   ls datasets/local_backup/code_generation/
+   ls dataset_storage/local_backup/code_generation/
    
    # Conta funzioni estratte
    # (vedi sezione Monitoraggio sopra)

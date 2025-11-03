@@ -45,7 +45,7 @@ python example_training.py --epochs 5 --batch-size 8
 ✅ GPU disponibile: NVIDIA RTX 3080
 📍 Device di training: cuda
 
-📂 Caricamento dati da: datasets/local_backup/code_generation
+📂 Caricamento dati da: dataset_storage/local_backup/code_generation
 ✅ Caricati 6674 esempi totali
 
 🔧 Preparazione dataset...

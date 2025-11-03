@@ -106,11 +106,11 @@ class AutoCleanup:
         try:
             # Elimina
             shutil.rmtree(path)
-            self.logger.info(f"✅ Eliminato repository: {path.name} ({size_str})")
+            self.logger.info(f"[OK] Eliminato repository: {path.name} ({size_str})")
             return True
         
         except Exception as e:
-            self.logger.error(f"❌ Errore eliminazione {path.name}: {e}")
+            self.logger.error(f"[FAIL] Errore eliminazione {path.name}: {e}")
             return False
     
     def cleanup_after_upload(self, 
@@ -133,21 +133,21 @@ class AutoCleanup:
         # Log contesto
         self.logger.info(
             f"Cleanup {path.name}: "
-            f"upload={'✅' if upload_success else '❌'}, "
+            f"upload={'[OK]' if upload_success else '[FAIL]'}, "
             f"functions={extracted_count}"
         )
         
         # Mantieni se errore e keep_on_error
         if not upload_success and self.keep_on_error:
             self.logger.info(
-                f"⚠️  Mantengo {path.name} per debug (upload fallito)"
+                f"[WARN] Mantengo {path.name} per debug (upload fallito)"
             )
             return False
         
         # Mantieni se nessuna funzione estratta
         if extracted_count == 0 and self.keep_on_error:
             self.logger.info(
-                f"⚠️  Mantengo {path.name} per debug (0 funzioni estratte)"
+                f"[WARN] Mantengo {path.name} per debug (0 funzioni estratte)"
             )
             return False
         
@@ -192,7 +192,7 @@ class AutoCleanup:
             self.logger.error(f"Errore cleanup old repos: {e}")
         
         if deleted > 0:
-            self.logger.info(f"🧹 Eliminati {deleted} repository vecchi")
+            self.logger.info(f"[CLEANUP] Eliminati {deleted} repository vecchi")
         
         return deleted
 

@@ -193,7 +193,7 @@ python bulk_processor.py --source github --repos repo_list.txt --batch_size 200
 ```
 
 **Output locations:**
-- Local: `datasets/local_backup/code_generation/`
+- Local: `dataset_storage/local_backup/code_generation/`
 - Cloud: Automatic upload to configured storage (if enabled)
 - Logs: `logs/` directory
 

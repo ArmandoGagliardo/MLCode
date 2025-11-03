@@ -132,7 +132,7 @@ class TestPipeline:
     @pytest.mark.slow
     def test_sample_dataset_loads(self):
         """Test that the sample dataset loads correctly."""
-        dataset_path = Path("datasets/local_backup/code_generation/sample_dataset.jsonl")
+        dataset_path = Path("dataset_storage/local_backup/code_generation/sample_dataset.jsonl")
 
         if not dataset_path.exists():
             pytest.skip("Sample dataset not found")

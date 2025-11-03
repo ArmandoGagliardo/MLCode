@@ -46,7 +46,7 @@ htmlcov/
 # Data, modelli e output (file pesanti)
 data/
 dataset/
-datasets/
+dataset_storage/
 raw_data/
 processed_data/
 models/
@@ -159,7 +159,7 @@ client/frontend/
 client/backend/
 client/*.py
 # File di grandi dimensioni dataset folder
-datasets/raw/
-datasets/processed/
-datasets/interim/
-datasets/external/
+dataset_storage/raw/
+dataset_storage/processed/
+dataset_storage/interim/
+dataset_storage/external/

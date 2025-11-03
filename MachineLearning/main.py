@@ -45,7 +45,7 @@ if '--check-deps' not in sys.argv and '--help' not in sys.argv and '-h' not in s
         deps_ok = check_dependencies()
         if not deps_ok:
             logger.warning("Alcune dipendenze critiche non sono soddisfatte")
-            print("\n⚠️  ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
+            print("\n[WARN] ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
             print("   Esegui: python check_dependencies.py --install")
             print("   Oppure: pip install -r requirements.txt\n")
     except ImportError as e:
@@ -72,8 +72,8 @@ def ensure_directories():
     for folder in [
         "module", "module/model", "module/tasks", "module/data", 
         "module/preprocessing", "module/storage", "module/utils",
-        "models", "datasets", "datasets/local_backup", 
-        "datasets/local_backup/code_generation",
+        "models", "dataset_storage", "dataset_storage/local_backup", 
+        "dataset_storage/local_backup/code_generation",
         "reports", "temp"
     ]:
         path = BASE_PATH / folder
@@ -114,6 +114,13 @@ def collect_data_from_repos(language=None, count=10, repo_url=None, repos_file=N
             logger.info(f"Processing single repository: {repo_url}")
             stats = processor.process_repository(repo_url)
             print(f"\n[OK] Processed: {stats['functions_extracted']} functions")
+
+            # Update processor statistics
+            processor.stats['repos_processed'] += 1
+            processor.stats['files_processed'] += stats.get('files_processed', 0)
+            processor.stats['functions_extracted'] += stats.get('functions_extracted', 0)
+
+            processor.print_statistics()
             
         elif repos_file:
             # Lista di repository
@@ -127,27 +134,34 @@ def collect_data_from_repos(language=None, count=10, repo_url=None, repos_file=N
             
             if not repos:
                 logger.error(f"No repositories found for language: {language}")
-                print(f"❌ No repositories configured for language: {language}")
+                print(f"[FAIL] No repositories configured for language: {language}")
                 return
             
-            print(f"\n📦 Processing {len(repos)} {language} repositories...")
+            print(f"\n[*] Processing {len(repos)} {language} repositories...")
             for i, repo_url in enumerate(repos, 1):
                 print(f"\n[{i}/{len(repos)}] Processing: {repo_url}")
                 try:
                     stats = processor.process_repository(repo_url)
                     print(f"  [OK] Extracted: {stats['functions_extracted']} functions")
+
+                    # Update processor statistics
+                    processor.stats['repos_processed'] += 1
+                    processor.stats['files_processed'] += stats.get('files_processed', 0)
+                    processor.stats['functions_extracted'] += stats.get('functions_extracted', 0)
+
                 except Exception as e:
-                    print(f"  ❌ Error: {e}")
+                    print(f"  [FAIL] Error: {e}")
                     logger.error(f"Failed to process {repo_url}: {e}")
+                    processor.stats['errors'] += 1
             
             processor.print_statistics()
         else:
-            print("❌ Error: Specify --language, --repo, or --repos-file")
+            print("[FAIL] Error: Specify --language, --repo, or --repos-file")
             logger.error("No data collection parameters specified")
             
     except Exception as e:
         logger.error(f"Data collection failed: {e}", exc_info=True)
-        print(f"\n❌ Data collection failed: {e}")
+        print(f"\n[FAIL] Data collection failed: {e}")
         raise
 
 
@@ -175,7 +189,7 @@ def bulk_process(repos_file=None, source='github', workers=8):
             
             if not Path(repos_file).exists():
                 logger.error(f"Repository list file not found: {repos_file}")
-                print(f"❌ File not found: {repos_file}")
+                print(f"[FAIL] File not found: {repos_file}")
                 print("Create a file with one repository URL per line.")
                 return
             
@@ -192,12 +206,12 @@ def bulk_process(repos_file=None, source='github', workers=8):
             
         else:
             logger.error(f"Unknown source: {source}")
-            print(f"❌ Unknown source: {source}")
+            print(f"[FAIL] Unknown source: {source}")
             print("Available sources: github, huggingface, local")
             
     except Exception as e:
         logger.error(f"Bulk processing failed: {e}", exc_info=True)
-        print(f"\n❌ Bulk processing failed: {e}")
+        print(f"\n[FAIL] Bulk processing failed: {e}")
         raise
 
 
@@ -222,7 +236,7 @@ def train(task, dataset_path=None, model_name=None):
 
         if task not in MODEL_PATHS:
             logger.error(f"Unknown task: {task}")
-            print(f"❌ Error: Unknown task '{task}'")
+            print(f"[FAIL] Error: Unknown task '{task}'")
             print(f"Available tasks: {list(MODEL_PATHS.keys())}")
             return
 
@@ -282,7 +296,7 @@ def train(task, dataset_path=None, model_name=None):
         # Backup su cloud se configurato
         try:
             if os.getenv('AUTO_BACKUP_AFTER_TRAINING', 'false').lower() == 'true':
-                print("\n☁️  Uploading model to cloud storage...")
+                print("\n[CLOUD] Uploading model to cloud storage...")
                 from module.storage.storage_manager import StorageManager
                 storage = StorageManager()
                 if storage.connect():
@@ -290,11 +304,11 @@ def train(task, dataset_path=None, model_name=None):
                     print("[OK] Cloud backup completed")
         except Exception as e:
             logger.warning(f"Cloud backup failed: {e}")
-            print(f"⚠️  Cloud backup failed: {e}")
+            print(f"[WARN] Cloud backup failed: {e}")
 
     except Exception as e:
         logger.error(f"Training failed: {e}", exc_info=True)
-        print(f"\n❌ Training failed: {e}")
+        print(f"\n[FAIL] Training failed: {e}")
         raise
 
 
@@ -311,7 +325,7 @@ def validate():
         validate_main()
     except Exception as e:
         logger.error(f"Validation failed: {e}", exc_info=True)
-        print(f"\n❌ Validation failed: {e}")
+        print(f"\n[FAIL] Validation failed: {e}")
 
 
 # ==================== UI ====================
@@ -328,19 +342,19 @@ def run_ui():
         app_path = BASE_PATH / "module/ui/app.py"
         if not app_path.exists():
             logger.error(f"UI file not found: {app_path}")
-            print(f"❌ Error: UI file not found at {app_path}")
+            print(f"[FAIL] Error: UI file not found at {app_path}")
             return
 
-        print("\n🚀 Starting web interface...")
-        print("ℹ️  Interface will be available at: http://localhost:8501")
-        print("ℹ️  Press Ctrl+C to stop the application")
+        print("\n[*] Starting web interface...")
+        print("[INFO] Interface will be available at: http://localhost:8501")
+        print("[INFO] Press Ctrl+C to stop the application")
         
         import signal
         
         def handle_shutdown(signum, frame):
             """Handle shutdown signals gracefully"""
             logger.info("Stopping application...")
-            print("\n👋 Shutting down application...")
+            print("\n[INFO] Shutting down application...")
             if 'process' in locals():
                 process.terminate()
                 process.wait()
@@ -364,11 +378,11 @@ def run_ui():
         
     except ImportError:
         logger.error("Streamlit not installed")
-        print("\n❌ Streamlit is not installed. Run:")
+        print("\n[FAIL] Streamlit is not installed. Run:")
         print("   pip install streamlit")
     except Exception as e:
         logger.error(f"UI error: {str(e)}")
-        print(f"\n❌ Error: {str(e)}")
+        print(f"\n[FAIL] Error: {str(e)}")
 
 
 # ==================== INTERACTIVE PIPELINE ====================
@@ -390,9 +404,9 @@ def run_pipeline():
 
         pipeline = TaskPipeline(model_paths)
 
-        print("\n🚀 Interactive pipeline active (type 'exit' to quit)\n")
+        print("\n[*] Interactive pipeline active (type 'exit' to quit)\n")
         while True:
-            text = input("✏️  Enter request or code: ")
+            text = input("[INPUT] Enter request or code: ")
             if text.strip().lower() == "exit":
                 break
 
@@ -401,7 +415,7 @@ def run_pipeline():
             
     except Exception as e:
         logger.error(f"Pipeline error: {e}", exc_info=True)
-        print(f"\n❌ Pipeline error: {e}")
+        print(f"\n[FAIL] Pipeline error: {e}")
 
 
 # ==================== CLOUD STORAGE ====================
@@ -422,29 +436,29 @@ def sync_cloud(direction='download'):
         
         storage = StorageManager()
         if not storage.connect():
-            print("❌ Failed to connect to cloud storage")
+            print("[FAIL] Failed to connect to cloud storage")
             logger.error("Cloud storage connection failed")
             return
         
-        print(f"\n☁️  Cloud storage connected: {storage.config.get('provider_type')}")
+        print(f"\n[CLOUD] Cloud storage connected: {storage.config.get('provider_type')}")
         
         if direction == 'download':
-            print("📥 Downloading datasets...")
+            print("[DOWNLOAD] Downloading datasets...")
             storage.download_datasets()
-            print("📥 Downloading models...")
+            print("[DOWNLOAD] Downloading models...")
             storage.download_models()
             
         elif direction == 'upload':
-            print("📤 Uploading datasets...")
+            print("[UPLOAD] Uploading datasets...")
             storage.upload_datasets()
-            print("📤 Uploading models...")
+            print("[UPLOAD] Uploading models...")
             storage.upload_models()
             
         print("[OK] Cloud sync completed")
         
     except Exception as e:
         logger.error(f"Cloud sync failed: {e}", exc_info=True)
-        print(f"\n❌ Cloud sync failed: {e}")
+        print(f"\n[FAIL] Cloud sync failed: {e}")
 
 
 # ==================== STATISTICS ====================
@@ -455,12 +469,12 @@ def show_stats():
     logger.info("SYSTEM STATISTICS")
     logger.info("="*60)
     
-    print("\n📊 System Statistics\n")
+    print("\n[STATS] System Statistics\n")
     print("="*60)
-    
+
     # Dataset statistics
-    print("\n📁 Datasets:")
-    datasets_dir = BASE_PATH / "datasets"
+    print("\n[DATA] Datasets:")
+    datasets_dir = BASE_PATH / "dataset_storage"
     local_backup_dir = datasets_dir / "local_backup" / "code_generation"
     
     if local_backup_dir.exists():
@@ -482,7 +496,7 @@ def show_stats():
         print("  No local datasets found")
     
     # Model statistics
-    print("\n🤖 Models:")
+    print("\n[MODEL] Models:")
     models_dir = BASE_PATH / "models"
     if models_dir.exists():
         for task_dir in models_dir.iterdir():
@@ -494,7 +508,7 @@ def show_stats():
         print("  No models found")
     
     # Duplicate cache
-    print("\n🔍 Duplicate Cache:")
+    print("\n[CACHE] Duplicate Cache:")
     dup_cache = datasets_dir / "duplicates_cache.json"
     if dup_cache.exists():
         try:
@@ -526,10 +540,15 @@ Examples:
   # Bulk Processing
   python main.py --bulk-process --repos-file repo_list.txt
   
-  # Training
+  # Training (Standard)
   python main.py --train code_generation
   python main.py --train text_classification
-  
+
+  # Training (Advanced - with metrics, validation, reports)
+  python main.py --train-adv code_generation
+  python main.py --train-adv code_generation --epochs 5 --batch-size 8
+  python main.py --train-adv code_generation --experiment my_experiment
+
   # Cloud Sync
   python main.py --sync-cloud download
   python main.py --sync-cloud upload
@@ -553,6 +572,9 @@ Examples:
     action_group.add_argument('--train', type=str, metavar='TASK',
                              choices=['code_generation', 'text_classification', 'security_classification'],
                              help='Train model for specific task')
+    action_group.add_argument('--train-adv', type=str, metavar='TASK',
+                             choices=['code_generation', 'text_classification', 'security_classification'],
+                             help='Advanced training with full orchestration (metrics, validation, reports)')
     action_group.add_argument('--validate', action='store_true',
                              help='Validate datasets and models')
     action_group.add_argument('--ui', action='store_true',
@@ -584,7 +606,15 @@ Examples:
                        help='Custom dataset path for training')
     parser.add_argument('--model', type=str,
                        help='Custom model name for training')
-    
+    parser.add_argument('--epochs', type=int,
+                       help='Number of training epochs (for --train-adv)')
+    parser.add_argument('--batch-size', type=int,
+                       help='Batch size for training (for --train-adv)')
+    parser.add_argument('--learning-rate', type=float,
+                       help='Learning rate for training (for --train-adv)')
+    parser.add_argument('--experiment', type=str,
+                       help='Experiment name for tracking (for --train-adv)')
+
     # Bulk processing options
     parser.add_argument('--source', type=str, default='github',
                        choices=['github', 'huggingface', 'local'],
@@ -623,7 +653,19 @@ Examples:
                 dataset_path=args.dataset,
                 model_name=args.model
             )
-            
+
+        elif args.train_adv:
+            from train_advanced_impl import train_advanced
+            train_advanced(
+                task=args.train_adv,
+                dataset_path=args.dataset,
+                model_name=args.model,
+                num_epochs=args.epochs,
+                batch_size=args.batch_size,
+                learning_rate=args.learning_rate,
+                experiment_name=args.experiment
+            )
+
         elif args.validate:
             validate()
             
@@ -641,18 +683,18 @@ Examples:
             
         else:
             parser.print_help()
-            print("\n💡 Quick Start:")
+            print("\n[INFO] Quick Start:")
             print("  1. python main.py --collect-data --language python --count 10")
             print("  2. python main.py --train code_generation")
             print("  3. python main.py --ui")
             
     except KeyboardInterrupt:
-        print("\n\n👋 Operation cancelled by user")
+        print("\n\n[INFO] Operation cancelled by user")
         logger.info("Operation cancelled by user")
         sys.exit(0)
     except Exception as e:
         logger.error(f"Fatal error: {e}", exc_info=True)
-        print(f"\n❌ Fatal error: {e}")
+        print(f"\n[FAIL] Fatal error: {e}")
         sys.exit(1)
 
 

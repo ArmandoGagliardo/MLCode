@@ -58,7 +58,7 @@ python example_training.py
 python example_training.py --epochs 5 --batch-size 8
 
 # Specifica directory dati
-python example_training.py --data-dir datasets/local_backup/code_generation
+python example_training.py --data-dir dataset_storage/local_backup/code_generation
 ```
 
 ---
@@ -250,7 +250,7 @@ MULTI_GPU = True  # Auto se >1 GPU
 
 ### Dataset Attuale
 ```
-datasets/local_backup/code_generation/
+dataset_storage/local_backup/code_generation/
 ├── requests_*.json     (1,041 funzioni Python)
 ├── axios_*.json        (1,027 funzioni JavaScript)
 ├── clap_*.json         (1,011 funzioni Rust)

@@ -209,7 +209,7 @@ echo "GITHUB_TOKEN=ghp_your_token_here" > .env
 
 Ora hai estratto le tue prime funzioni!
 
-**Risultati in:** `datasets/local_backup/code_generation/`
+**Risultati in:** `dataset_storage/local_backup/code_generation/`
 
 **Logs in:** `logs/`
 
