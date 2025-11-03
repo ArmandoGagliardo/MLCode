@@ -251,11 +251,48 @@ def train(task, dataset_path=None, model_name=None):
 
         # Verify that the dataset exists
         if not Path(dataset_path).exists():
-            logger.error(f"Dataset not found: {dataset_path}")
-            print(f"\n[FAIL] Dataset not found: {dataset_path}")
-            print("Run data collection first:")
-            print(f"  python main.py --collect-data --language python")
-            return
+            # Try to download from cloud if AUTO_DOWNLOAD_DATASETS is enabled
+            auto_download = os.getenv('AUTO_DOWNLOAD_DATASETS', 'false').lower() == 'true'
+            
+            if auto_download:
+                logger.info("Dataset not found locally, attempting cloud download...")
+                print(f"\n[CLOUD] Dataset not found: {dataset_path}")
+                print("[CLOUD] Attempting to download from cloud storage...")
+                
+                try:
+                    from module.storage.storage_manager import StorageManager
+                    storage = StorageManager()
+                    
+                    if storage.connect():
+                        print("[CLOUD] Connected to cloud storage")
+                        stats = storage.download_datasets()
+                        print(f"[CLOUD] Downloaded {stats.get('downloaded', 0)} files")
+                        
+                        # Check again if dataset exists
+                        if Path(dataset_path).exists():
+                            print(f"[OK] Dataset downloaded successfully: {dataset_path}")
+                            logger.info(f"Dataset downloaded from cloud: {dataset_path}")
+                        else:
+                            print(f"[FAIL] Dataset not found in cloud storage: {dataset_path}")
+                            logger.error(f"Dataset not in cloud storage: {dataset_path}")
+                            return
+                    else:
+                        print("[FAIL] Could not connect to cloud storage")
+                        logger.error("Cloud storage connection failed")
+                        return
+                        
+                except Exception as e:
+                    logger.error(f"Failed to download dataset from cloud: {e}")
+                    print(f"[FAIL] Cloud download failed: {e}")
+                    return
+            else:
+                logger.error(f"Dataset not found: {dataset_path}")
+                print(f"\n[FAIL] Dataset not found: {dataset_path}")
+                print("Options:")
+                print(f"  1. Run data collection: python main.py --collect-data --language python")
+                print(f"  2. Download from cloud: python main.py --sync download")
+                print(f"  3. Enable auto-download: Set AUTO_DOWNLOAD_DATASETS=true in .env")
+                return
 
         # Instantiate model manager
         print("\n[*] Loading model and tokenizer...")

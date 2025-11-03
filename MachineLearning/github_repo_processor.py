@@ -42,7 +42,7 @@ from module.preprocessing.universal_parser_new import UniversalParser
 from module.utils.duplicate_manager import DuplicateManager
 from module.preprocessing.code_quality_filter import QualityFilter
 from auto_cleanup import AutoCleanup
-from config import CLOUD_DATASET_PATH, LOCAL_DATASET_PATH
+from config import CLOUD_DATASET_PATH
 
 # Setup logging
 logging.basicConfig(
@@ -529,41 +529,52 @@ class GitHubRepoProcessor:
         filename = f"{repo_name}_{timestamp}_{len(dataset)}.json"
 
         if self.cloud_save and self.storage:
-            # Try to save to cloud storage
+            # Save to cloud storage with retry mechanism
             cloud_path = f"{CLOUD_DATASET_PATH}/{filename}"
             try:
                 # Convert to JSON
                 json_data = json.dumps(dataset, indent=2)
 
-                # Upload to cloud using provider directly
-                success = self.storage.provider.upload_file_content(cloud_path, json_data)
-
-                if success:
-                    # Log successful save
-                    print(f"    [OK] Saved {len(dataset)} functions to cloud: {filename}")
-                    logger.info(f"Saved {len(dataset)} functions to cloud: {cloud_path}")
-                else:
-                    # Fallback to local
-                    print(f"    [WARNING] Cloud save failed, saving locally: {filename}")
-                    self.save_local_backup(dataset, filename)
+                # Upload to cloud with retry (3 attempts)
+                max_retries = 3
+                success = False
+                last_error = None
+                
+                for attempt in range(1, max_retries + 1):
+                    try:
+                        success = self.storage.provider.upload_file_content(cloud_path, json_data)
+                        
+                        if success:
+                            # Log successful save
+                            if attempt > 1:
+                                print(f"    [OK] Saved {len(dataset)} functions to cloud (attempt {attempt}): {filename}")
+                            else:
+                                print(f"    [OK] Saved {len(dataset)} functions to cloud: {filename}")
+                            logger.info(f"Saved {len(dataset)} functions to cloud: {cloud_path}")
+                            break
+                        else:
+                            last_error = "Upload returned False"
+                            if attempt < max_retries:
+                                logger.warning(f"Upload attempt {attempt} failed, retrying...")
+                                time.sleep(2)  # Wait 2 seconds before retry
+                    except Exception as upload_error:
+                        last_error = str(upload_error)
+                        if attempt < max_retries:
+                            logger.warning(f"Upload attempt {attempt} failed: {upload_error}, retrying...")
+                            time.sleep(2)  # Wait 2 seconds before retry
+                        else:
+                            raise
+                
+                if not success:
+                    print(f"    [ERROR] Failed to save to cloud after {max_retries} attempts: {filename}")
+                    logger.error(f"Failed to save batch to cloud after {max_retries} attempts: {last_error}")
 
             except Exception as e:
                 logger.error(f"Failed to save to cloud: {e}")
-                self.save_local_backup(dataset, filename)
+                print(f"    [ERROR] Exception saving to cloud: {e}")
         else:
-            # Save locally
-            self.save_local_backup(dataset, filename)
-
-    def save_local_backup(self, dataset: List[Dict], filename: str):
-        """Save dataset locally as backup."""
-        local_dir = LOCAL_DATASET_PATH
-        local_dir.mkdir(parents=True, exist_ok=True)
-
-        local_path = local_dir / filename
-        with open(local_path, 'w', encoding='utf-8') as f:
-            json.dump(dataset, f, indent=2)
-
-        logger.info(f"Saved {len(dataset)} functions locally: {local_path}")
+            logger.warning(f"Cloud storage not configured, batch not saved: {filename}")
+            print(f"    [WARNING] Cloud storage disabled, {len(dataset)} functions not saved")
 
     def process_repos_from_file(self, repos_file: str, max_workers: int = 4):
         """

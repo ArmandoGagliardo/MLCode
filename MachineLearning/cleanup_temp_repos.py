@@ -62,7 +62,6 @@ class RepoCleanup:
         # Importato da config.py per mantenere coerenza
         self.dataset_dirs = [
             LOCAL_DATASET_PATH,  # dataset_storage/local_backup/code_generation
-            Path("data/datasets/code_generation"),  # data/datasets/code_generation (scaricati da cloud)
         ]
         
         # Pattern da mantenere (whitelist)
