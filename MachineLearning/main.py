@@ -38,20 +38,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Controllo dipendenze (solo se non stiamo controllando le dipendenze o mostrando l'help)
-if '--check-deps' not in sys.argv and '--help' not in sys.argv and '-h' not in sys.argv:
-    try:
-        from check_dependencies import check_dependencies
-        deps_ok = check_dependencies()
-        if not deps_ok:
-            logger.warning("Alcune dipendenze critiche non sono soddisfatte")
-            print("\n[WARN] ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
-            print("   Esegui: python check_dependencies.py --install")
-            print("   Oppure: pip install -r requirements.txt\n")
-    except ImportError as e:
-        logger.warning(f"Impossibile controllare le dipendenze: {e}")
-    except Exception as e:
-        logger.warning(f"Errore durante il controllo delle dipendenze: {e}")
 
 # Load configuration
 try:
@@ -625,7 +611,9 @@ Examples:
                              help='Show system statistics')
     action_group.add_argument('--check-deps', action='store_true',
                              help='Check dependencies')
-    
+    # Test connection storage
+    parser.add_argument('--test-connection', action='store_true',
+                       help='Test cloud storage connection')
     # Data collection options
     parser.add_argument('--language', type=str,
                        help='Programming language for data collection')
@@ -656,7 +644,10 @@ Examples:
     parser.add_argument('--source', type=str, default='github',
                        choices=['github', 'huggingface', 'local'],
                        help='Data source for bulk processing')
-    
+    # clean file cleanup_temp_repos.py
+    parser.add_argument('--clean', action='store_true',
+                       help='Clean up temporary repository files')
+
     args = parser.parse_args()
     
     # Ensure directories exist
@@ -665,9 +656,29 @@ Examples:
     # Execute requested action
     try:
         if args.check_deps:
-            from check_dependencies import check_dependencies
-            check_dependencies()
-            
+            try:
+                from check_dependencies import check_dependencies
+                deps_ok = check_dependencies()
+                if not deps_ok:
+                    logger.warning("Alcune dipendenze critiche non sono soddisfatte")
+                    print("\n[WARN] ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
+                    print("   Esegui: python check_dependencies.py --install")
+                    print("   Oppure: pip install -r requirements.txt\n")
+            except ImportError as e:
+                logger.warning(f"Impossibile controllare le dipendenze: {e}")
+            except Exception as e:
+                logger.warning(f"Errore durante il controllo delle dipendenze: {e}")
+    
+        elif args.test_connection:
+            from module.storage.storage_manager import StorageManager
+            storage_manager = StorageManager()
+            if storage_manager.connect():
+                print("[OK] Cloud storage connection successful")
+                logger.info("Cloud storage connection successful")
+            else:
+                print("[FAIL] Cloud storage connection failed")
+                logger.error("Cloud storage connection failed")
+
         elif args.collect_data:
             collect_data_from_repos(
                 language=args.language,
@@ -717,6 +728,12 @@ Examples:
             
         elif args.stats:
             show_stats()
+        
+        elif args.clean:
+            from cleanup_temp_repos import RepoCleanup
+            cleaner = RepoCleanup(dry_run=False, verbose=True)
+
+            cleaner.cleanup(datasets_only=True)
             
         else:
             parser.print_help()
