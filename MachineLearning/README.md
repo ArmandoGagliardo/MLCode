@@ -1,8 +1,12 @@
 # Machine Learning Multi-Language Code Extraction & Training System
 
-A production-ready system for extracting code from GitHub repositories and training ML models across 7 programming languages, with advanced quality filtering, cloud storage integration, and automated training pipeline.
+A system for extracting code from GitHub repositories and training ML models across 7 programming languages, with advanced quality filtering, cloud storage integration, and automated training pipeline.
 
-> **🎉 NEW: Complete Training Pipeline Implemented!**  
+> **📊 Project Status: Development (v0.8 - 80% Complete)**
+> Core extraction and training pipelines are functional. Some features are experimental.
+> See [Project Status](#-project-status) below for details.
+
+> **🎉 NEW: Complete Training Pipeline Implemented!**
 > Train ML models with your extracted data in 30 minutes. See [SISTEMA_COMPLETO.md](SISTEMA_COMPLETO.md) for full details.
 
 ## ✨ Features
@@ -16,9 +20,10 @@ A production-ready system for extracting code from GitHub repositories and train
 - **Progress Monitoring**: Real-time progress bars and statistics
 - **6,674+ Functions**: Already extracted and ready for training
 
-### Machine Learning Training ✅ 100% Implemented
+### Machine Learning Training ✅ Implemented
 - **Code Generation Models**: Train models to generate code from natural language
-- **Multi-Task Support**: Code generation, classification, security analysis
+- **Multi-Task Support**: Code generation, classification
+- **Security Analysis**: ⚠️ Experimental (In Development - 25% complete)
 - **GPU Acceleration**: Automatic multi-GPU training support
 - **Model Fine-tuning**: Pre-trained model fine-tuning (CodeGen, CodeT5, etc.)
 - **Quick Demo**: Train a model in 30 minutes with `example_training.py`
@@ -455,6 +460,106 @@ See `requirements.txt` for complete list.
 2. Implement `crawl()` method
 3. Add CLI argument in `main.py`
 4. Create corresponding function in `main.py`
+
+## 📊 Project Status
+
+### Overall Completion: ~80%
+
+| Component | Status | Completion | Notes |
+|-----------|--------|------------|-------|
+| **Data Extraction Pipeline** | ✅ Production Ready | 95% | Fully functional, tested on 7 languages |
+| Universal Parser | ✅ Working | 90% | Tree-sitter based, supports 8+ languages |
+| Quality Filter | ✅ Working | 85% | Language-specific validation |
+| Duplicate Detection | ✅ Working | 85% | Hash-based deduplication |
+| GitHub Crawler | ✅ Working | 80% | Repository cloning and processing |
+| Bulk Processor | ✅ Working | 75% | Parallel processing, needs more testing |
+| **Machine Learning** | ✅ Functional | 70% | Core training works, needs validation |
+| Model Training | ✅ Working | 75% | Basic training functional |
+| Advanced Trainer | ⚠️ Partial | 60% | Needs end-to-end testing |
+| Model Manager | ✅ Working | 80% | Load/save functionality works |
+| Inference Pipeline | ⚠️ Partial | 50% | Needs more testing |
+| **Storage & Cloud** | ✅ Functional | 85% | Multi-provider support |
+| Storage Manager | ✅ Working | 85% | 5 cloud providers supported |
+| Local Storage | ✅ Working | 100% | Fully functional |
+| Cloud Sync | ⚠️ Partial | 70% | Needs credentials testing |
+| **Security Features** | ⚠️ Experimental | 25% | In early development |
+| Security Crawler | ⚠️ Partial | 30% | NVD API integration works |
+| Pattern Detection | ❌ Not Implemented | 0% | Planned feature |
+| ML-based Detection | ❌ Not Implemented | 0% | Planned feature |
+| Security Dashboard | ❌ Not Implemented | 0% | Planned feature |
+| **Testing & Quality** | ⚠️ Basic | 40% | Improved recently |
+| Unit Tests | ⚠️ Basic | 50% | 34 tests added, more needed |
+| Integration Tests | ⚠️ Basic | 30% | Basic pipeline tests |
+| Validation Scripts | ✅ Working | 80% | End-to-end validation available |
+| CI/CD Pipeline | ❌ Not Configured | 0% | Not set up yet |
+
+### Production Readiness
+
+**Ready for Production:**
+- Data extraction from GitHub repositories
+- Code parsing for Python, JavaScript, Java, Go, Rust, Ruby, C++
+- Quality filtering and deduplication
+- Local storage and dataset creation
+- Basic model training (with supervision)
+
+**Not Ready for Production:**
+- Security vulnerability detection (25% complete)
+- Automated model validation
+- Cloud storage (needs credential configuration)
+- Advanced training features (needs testing)
+- UI/Dashboard components
+
+### Known Issues
+
+1. **Encoding Bug**: Fixed in v0.8.1 - `check_dependencies.py` now works on Windows
+2. **Empty Dataset Directory**: Sample dataset added in v0.8.1
+3. **Mixed Language Comments**: Partially fixed - main files converted to English
+4. **No CI/CD**: Tests exist but no automated runner configured
+5. **Large Model Files**: 481MB in models/ directory, should use Git LFS
+
+### Validation
+
+To validate your installation:
+```bash
+# Check dependencies
+python check_dependencies.py
+
+# Validate complete pipeline
+python validate_pipeline.py
+
+# Run test suite
+pytest -v
+```
+
+### Roadmap
+
+**Short Term (v0.9 - Next 4 weeks):**
+- [ ] Complete end-to-end testing
+- [ ] Add model validation metrics
+- [ ] Set up CI/CD pipeline (GitHub Actions)
+- [ ] Complete English translation of all comments
+- [ ] Add more unit tests (target: 80% coverage)
+
+**Medium Term (v1.0 - Next 3 months):**
+- [ ] Production-ready model training
+- [ ] Complete security features or remove from docs
+- [ ] Docker configuration
+- [ ] Performance benchmarks
+- [ ] Comprehensive documentation
+
+**Long Term (v2.0+):**
+- [ ] Web UI for monitoring
+- [ ] Real-time training dashboard
+- [ ] API server for inference
+- [ ] Multi-node distributed training
+- [ ] Support for 20+ programming languages
+
+### Getting Help
+
+- **Installation Issues**: Run `python check_dependencies.py`
+- **Pipeline Issues**: Run `python validate_pipeline.py`
+- **Test Failures**: See [tests/README.md](tests/README.md)
+- **General Questions**: Check [docs/README.md](docs/README.md)
 
 ## License
 

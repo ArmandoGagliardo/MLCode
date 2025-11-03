@@ -97,7 +97,6 @@ credentials/
 *.tmp
 *.bak
 *.swp
-*.md
 
 # Legacy files
 legacy/

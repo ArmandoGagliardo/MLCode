@@ -350,42 +350,52 @@ class BulkProcessor:
         batch_size = 1000
         batch = []
         total_processed = 0
+        
+        # Create parser once for efficiency
+        parser = UniversalParser()
 
         for item in dataset['train']:
-            if max_samples and total_processed >= max_samples:
-                break
-
             # Extract code content
             code = item.get('content', '') or item.get('code', '')
             if not code:
                 continue
 
             # Parse functions from code
-            parser = UniversalParser()
-            functions = parser.extract_all_functions(code, 'python')
+            functions = parser.parse(code, 'python')
 
             for func in functions:
+                # Check max_samples limit based on total functions extracted
+                if max_samples and total_processed >= max_samples:
+                    break
+                    
+                # Use the fields returned by parse(): name, signature, doc, input, output
                 dataset_item = {
-                    'task_type': task_type,
-                    'language': 'python',
+                    'task_type': func.get('task_type', task_type),
+                    'language': func.get('language', 'python'),
                     'func_name': func.get('name', 'unknown'),
-                    'input': f"Write a Python function {func.get('name', '')}",
-                    'output': func.get('body', ''),
+                    'name': func.get('name', 'unknown'),
+                    'signature': func.get('signature', ''),
+                    'doc': func.get('doc', ''),
+                    'input': func.get('input', ''),
+                    'output': func.get('output', ''),
                     'source': 'huggingface_codeparrot'
                 }
                 batch.append(dataset_item)
+                total_processed += 1
+
+            # Check if we reached max_samples
+            if max_samples and total_processed >= max_samples:
+                break
 
             # Save batch when full
             if len(batch) >= batch_size:
                 self.save_dataset_to_cloud(batch, f"{task_type}/huggingface")
-                total_processed += len(batch)
                 batch = []
                 logger.info(f"Processed {total_processed} code samples")
 
         # Save remaining batch
         if batch:
             self.save_dataset_to_cloud(batch, f"{task_type}/huggingface")
-            total_processed += len(batch)
 
         logger.info(f"Completed processing {total_processed} code samples")
         self.stats['items_processed'] += total_processed
@@ -413,8 +423,8 @@ class BulkProcessor:
 
             dataset_item = {
                 'task_type': 'text_classification',
-                'text': text,
-                'label': int(label),
+                'input': text,  # Changed from 'text' to 'input' for consistency with trainer
+                'output': int(label),  # Changed from 'label' to 'output' for consistency with trainer
                 'source': 'huggingface'
             }
             batch.append(dataset_item)

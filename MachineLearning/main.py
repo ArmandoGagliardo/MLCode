@@ -41,12 +41,12 @@ logger = logging.getLogger(__name__)
 # Controllo dipendenze (solo se non stiamo controllando le dipendenze o mostrando l'help)
 if '--check-deps' not in sys.argv and '--help' not in sys.argv and '-h' not in sys.argv:
     try:
-        from debug.check_dependencies import check_dependencies
-        deps_ok = check_dependencies(verbose=False, auto_install=False)
+        from check_dependencies import check_dependencies
+        deps_ok = check_dependencies()
         if not deps_ok:
             logger.warning("Alcune dipendenze critiche non sono soddisfatte")
             print("\n⚠️  ATTENZIONE: Alcune dipendenze critiche mancano o sono obsolete")
-            print("   Esegui: python check_dependencies.py --auto-install")
+            print("   Esegui: python check_dependencies.py --install")
             print("   Oppure: pip install -r requirements.txt\n")
     except ImportError as e:
         logger.warning(f"Impossibile controllare le dipendenze: {e}")
@@ -234,32 +234,32 @@ def train(task, dataset_path=None, model_name=None):
         
         logger.info(f"Model: {model_name}")
         logger.info(f"Dataset: {dataset_path}")
-        
-        # Verifica che il dataset esista
+
+        # Verify that the dataset exists
         if not Path(dataset_path).exists():
             logger.error(f"Dataset not found: {dataset_path}")
-            print(f"\n❌ Dataset not found: {dataset_path}")
+            print(f"\n[FAIL] Dataset not found: {dataset_path}")
             print("Run data collection first:")
             print(f"  python main.py --collect-data --language python")
             return
 
-        # Istanzia model manager
-        print("\n📦 Loading model and tokenizer...")
+        # Instantiate model manager
+        print("\n[*] Loading model and tokenizer...")
         model_manager = ModelManager(task=task, model_name=model_name)
 
-        # Seleziona trainer appropriato
+        # Select appropriate trainer
         if task in ["code_generation"]:
             logger.info("Using AdvancedTrainer for generation task")
             from module.model.training_model_advanced import AdvancedTrainer
             trainer = AdvancedTrainer(model_manager, use_gpu=True)
 
-            trainer.train_model(
+            trainer.train(
                 dataset_path=dataset_path,
                 model_save_path=f"models/{task}",
                 batch_size=DEFAULT_BATCH_SIZE,
                 num_epochs=DEFAULT_EPOCHS,
                 learning_rate=DEFAULT_LEARNING_RATE,
-                remove_labels=["task_type", "language", "func_name", "input", "output"]
+                #remove_labels=["task_type", "language", "func_name", "input", "output"]
             )
 
         else:
@@ -598,8 +598,8 @@ Examples:
     # Execute requested action
     try:
         if args.check_deps:
-            from debug.check_dependencies import check_dependencies
-            check_dependencies(verbose=True, auto_install=True)
+            from check_dependencies import check_dependencies
+            check_dependencies()
             
         elif args.collect_data:
             collect_data_from_repos(
