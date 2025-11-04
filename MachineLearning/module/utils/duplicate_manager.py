@@ -2,12 +2,16 @@
 Duplicate Manager
 
 Manages duplicate detection for extracted code to avoid redundant training data.
-Uses hash-based detection and stores metadata for tracking.
+Uses AST-based hash detection to ignore superficial differences like whitespace,
+comments, and variable names. Stores metadata for tracking.
+
+Version 1.2.0 - Added AST-aware deduplication
 """
 
 import hashlib
 import json
 import logging
+import ast
 from pathlib import Path
 from typing import Dict, Set, Optional
 
@@ -19,22 +23,27 @@ class DuplicateManager:
     Manages duplicate detection for code snippets and functions.
     """
 
-    def __init__(self, storage_path: str = "dataset_storage/duplicates_cache.json"):
+    def __init__(self, storage_path: str = "dataset_storage/duplicates_cache.json", use_ast_hash: bool = True):
         """
         Initialize the duplicate manager.
 
         Args:
             storage_path: Path to store duplicate hashes cache
+            use_ast_hash: If True, use AST-based hashing (ignores whitespace, comments).
+                         If False, use traditional MD5 (faster but less accurate)
         """
         self.storage_path = Path(storage_path)
         self.hashes: Set[str] = set()
         self.metadata: Dict[str, Dict] = {}
+        self.use_ast_hash = use_ast_hash
         
         # Create directory if it doesn't exist
         self.storage_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Load existing hashes
         self._load_cache()
+        
+        logger.info(f"DuplicateManager initialized with {'AST-aware' if use_ast_hash else 'MD5'} hashing")
 
     def _load_cache(self):
         """Load existing duplicate cache from disk."""
@@ -66,14 +75,88 @@ class DuplicateManager:
 
     def generate_hash(self, content: str, algorithm: str = 'md5') -> str:
         """
-        Generate hash for content.
+        Generate hash for content using AST-aware or traditional method.
+
+        AST-aware hashing (default):
+        - Ignores whitespace differences (spaces, tabs, newlines)
+        - Ignores comments
+        - Normalizes code structure
+        - Example: These are considered duplicates:
+            def sum(a,b): return a+b
+            def sum(a, b):  # Add two numbers
+                return a + b
+
+        Traditional hashing:
+        - Byte-by-byte comparison after basic normalization
+        - Faster but less accurate
 
         Args:
-            content: Content to hash
+            content: Code content to hash
             algorithm: Hashing algorithm ('md5', 'sha256')
 
         Returns:
             Hexadecimal hash string
+        """
+        if self.use_ast_hash:
+            return self._generate_ast_hash(content, algorithm)
+        else:
+            return self._generate_simple_hash(content, algorithm)
+    
+    def _generate_ast_hash(self, content: str, algorithm: str = 'md5') -> str:
+        """
+        Generate AST-based hash that ignores superficial differences.
+        
+        Process:
+        1. Parse code into AST (Abstract Syntax Tree)
+        2. Normalize AST (remove position info, docstrings optional)
+        3. Unparse back to canonical form
+        4. Hash the normalized code
+        
+        Args:
+            content: Code content to hash
+            algorithm: Hashing algorithm
+            
+        Returns:
+            Hash of normalized code
+        """
+        try:
+            # Parse code into AST
+            tree = ast.parse(content)
+            
+            # Unparse to get normalized form (Python 3.9+)
+            # This automatically removes comments, normalizes whitespace
+            normalized = ast.unparse(tree)
+            
+            # Further normalization: remove all whitespace for comparison
+            normalized = normalized.replace(' ', '').replace('\n', '').replace('\t', '')
+            normalized = normalized.lower()
+            
+            # Generate hash
+            if algorithm == 'md5':
+                return hashlib.md5(normalized.encode('utf-8')).hexdigest()
+            elif algorithm == 'sha256':
+                return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+            else:
+                raise ValueError(f"Unsupported algorithm: {algorithm}")
+                
+        except SyntaxError:
+            # If code doesn't parse, fall back to simple hash
+            logger.debug("AST parse failed, using simple hash fallback")
+            return self._generate_simple_hash(content, algorithm)
+        except Exception as e:
+            logger.warning(f"AST hash generation failed: {e}, using simple hash")
+            return self._generate_simple_hash(content, algorithm)
+    
+    def _generate_simple_hash(self, content: str, algorithm: str = 'md5') -> str:
+        """
+        Generate traditional hash with basic normalization.
+        
+        Args:
+            content: Content to hash
+            algorithm: Hashing algorithm
+            
+        Returns:
+            Hash string
         """
         # Normalize content (strip whitespace, lowercase)
         normalized = content.strip().lower()

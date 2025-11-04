@@ -87,7 +87,10 @@ class GitHubRepoProcessor:
                  cloud_save: bool = True,
                  max_file_size_mb: int = 10,
                  batch_size: int = 100,
-                 auto_cleanup: bool = True):
+                 auto_cleanup: bool = True,
+                 extraction_mode: str = 'function',
+                 use_advanced_quality: bool = False,
+                 enable_docstring_pairs: bool = False):
         """
         Initialize the processor.
 
@@ -97,12 +100,20 @@ class GitHubRepoProcessor:
             max_file_size_mb: Maximum file size to process (in MB)
             batch_size: Number of functions to batch before saving
             auto_cleanup: Automatically delete repos after processing
+            extraction_mode: Mode for extraction:
+                'function' - Extract only functions (default, 100%)
+                'file' - Extract complete files with context (100%)
+                'hybrid' - Mix of functions (70%) and files (30%)
+            use_advanced_quality: Use radon-based quality metrics
+            enable_docstring_pairs: Extract docstring→code pairs for better training
         """
         self.temp_dir = temp_dir or tempfile.mkdtemp(prefix="repos_")
         self.cloud_save = cloud_save
         self.max_file_size_bytes = max_file_size_mb * 1024 * 1024
         self.batch_size = batch_size
         self.auto_cleanup = auto_cleanup
+        self.extraction_mode = extraction_mode
+        self.enable_docstring_pairs = enable_docstring_pairs
 
         # Initialize components
         self.storage = StorageManager() if cloud_save else None
@@ -111,8 +122,8 @@ class GitHubRepoProcessor:
             logger.info(f"Storage provider: {self.storage.config.get('provider_type', 'unknown')}")
         
         self.parser = UniversalParser()
-        self.duplicate_manager = DuplicateManager()
-        self.quality_filter = QualityFilter()
+        self.duplicate_manager = DuplicateManager(use_ast_hash=True)  # Use AST-aware dedup
+        self.quality_filter = QualityFilter(use_advanced=use_advanced_quality, min_quality_score=60)
         
         # Initialize auto cleanup
         self.cleaner = AutoCleanup(keep_on_error=True) if auto_cleanup else None
@@ -122,9 +133,15 @@ class GitHubRepoProcessor:
             'repos_processed': 0,
             'files_processed': 0,
             'functions_extracted': 0,
+            'files_extracted': 0,  # Track full files
+            'docstring_pairs': 0,  # Track docstring pairs
             'errors': 0,
             'start_time': datetime.now()
         }
+        
+        logger.info(f"Extraction mode: {extraction_mode}")
+        logger.info(f"Advanced quality filter: {'enabled' if use_advanced_quality else 'disabled'}")
+        logger.info(f"Docstring pairs: {'enabled' if enable_docstring_pairs else 'disabled'}")
         
         # Stop flag for graceful shutdown
         self.stop_requested = False
@@ -200,12 +217,17 @@ class GitHubRepoProcessor:
             # Prepare git clone command with authentication if available
             github_token = os.getenv('GITHUB_TOKEN')
             
+            # Use environment variables for secure token handling (not in URL)
+            env = os.environ.copy()
+            
             if github_token and 'github.com' in repo_url:
-                # Insert token into URL for authentication
-                # https://github.com/user/repo → https://TOKEN@github.com/user/repo
-                auth_url = repo_url.replace('https://', f'https://{github_token}@')
-                clone_url = auth_url
-                logger.debug("Using GitHub token for authentication")
+                # Secure method: Use GIT_ASKPASS with credentials
+                # Token not visible in process list or logs
+                env['GIT_ASKPASS'] = 'echo'
+                env['GIT_USERNAME'] = 'x-access-token'
+                env['GIT_PASSWORD'] = github_token
+                logger.debug("Using GitHub token for authentication (secure)")
+                clone_url = repo_url
             else:
                 clone_url = repo_url
             
@@ -214,7 +236,8 @@ class GitHubRepoProcessor:
                 ['git', 'clone', '--depth', '1', clone_url, local_path],
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minutes timeout
+                timeout=300,  # 5 minutes timeout
+                env=env
             )
 
             if result.returncode != 0:
@@ -285,12 +308,17 @@ class GitHubRepoProcessor:
     def extract_functions_from_file(self, file_path: str) -> List[Dict]:
         """
         Extract functions from a code file.
+        
+        Supports multiple extraction modes:
+        - function: Extract individual functions (default)
+        - file: Extract complete files with context
+        - hybrid: Mix of functions (70%) and files (30%)
 
         Args:
             file_path: Path to code file
 
         Returns:
-            List of extracted functions with metadata
+            List of extracted functions/files with metadata
         """
         try:
             # Read file content
@@ -308,27 +336,157 @@ class GitHubRepoProcessor:
             if not language:
                 return []
 
-            # Parse with UniversalParser
-            functions = self.parser.extract_all_functions(content, language)
+            results = []
+            
+            # MODE 1: Extract docstring pairs (if enabled)
+            if self.enable_docstring_pairs and language == 'python':
+                docstring_pairs = self.parser.extract_with_docstring_pairs(content, language)
+                for pair in docstring_pairs:
+                    pair['file_path'] = file_path
+                    pair['language'] = language
+                    pair['hash'] = self.duplicate_manager.generate_hash(pair.get('output', ''))
+                    pair['extracted_at'] = datetime.now().isoformat()
+                results.extend(docstring_pairs)
+                self.stats['docstring_pairs'] += len(docstring_pairs)
+            
+            # MODE 2: Regular function extraction
+            elif self.extraction_mode in ['function', 'hybrid']:
+                # Parse with UniversalParser
+                functions = self.parser.extract_all_functions(content, language)
 
-            # Add metadata to each function
-            for func in functions:
-                # Add file metadata
-                func['file_path'] = file_path
-                func['language'] = language
+                # Add metadata to each function
+                for func in functions:
+                    func['file_path'] = file_path
+                    func['language'] = language
+                    func['hash'] = self.duplicate_manager.generate_hash(func.get('output', ''))
+                    func['extracted_at'] = datetime.now().isoformat()
 
-                # Generate unique ID
-                func_str = f"{func.get('name', '')}_{func.get('body', '')}"
-                func['hash'] = hashlib.md5(func_str.encode()).hexdigest()
+                results.extend(functions)
+            
+            # MODE 3: File extraction (for hybrid or file mode)
+            if self.extraction_mode == 'file' or (self.extraction_mode == 'hybrid' and self._is_key_file(file_path)):
+                # Extract full file with context
+                file_entry = self._extract_full_file(file_path, content, language)
+                if file_entry:
+                    results.append(file_entry)
+                    self.stats['files_extracted'] += 1
 
-                # Add timestamp
-                func['extracted_at'] = datetime.now().isoformat()
-
-            return functions
+            return results
 
         except Exception as e:
             logger.error(f"Error extracting from {file_path}: {e}")
             return []
+    
+    def _is_key_file(self, file_path: str) -> bool:
+        """
+        Check if file is a "key file" worth extracting in full.
+        
+        Key files provide valuable architectural context:
+        - __init__.py (package structure)
+        - main.py, app.py (entry points)
+        - config.py, settings.py (configuration)
+        - models.py, schemas.py (data structures)
+        
+        Args:
+            file_path: Path to file
+            
+        Returns:
+            True if file should be extracted in full
+        """
+        filename = Path(file_path).name.lower()
+        
+        # List of important file names
+        key_files = [
+            '__init__.py',
+            'main.py',
+            'app.py',
+            'config.py',
+            'settings.py',
+            'models.py',
+            'schema.py',
+            'schemas.py',
+            'setup.py',
+            'wsgi.py',
+            'asgi.py',
+            'urls.py',
+            'routes.py',
+            'views.py',
+            'api.py'
+        ]
+        
+        return filename in key_files
+    
+    def _extract_full_file(self, file_path: str, content: str, language: str) -> Optional[Dict]:
+        """
+        Extract complete file with contextual information.
+        
+        Includes:
+        - Full file content
+        - Import statements
+        - File-level docstring
+        - Repository structure context
+        
+        Args:
+            file_path: Path to file
+            content: File content
+            language: Programming language
+            
+        Returns:
+            Dictionary with file data or None
+        """
+        try:
+            # Extract imports (Python only for now)
+            imports = []
+            if language == 'python':
+                import ast
+                try:
+                    tree = ast.parse(content)
+                    for node in ast.walk(tree):
+                        if isinstance(node, ast.Import):
+                            for alias in node.names:
+                                imports.append(alias.name)
+                        elif isinstance(node, ast.ImportFrom):
+                            module = node.module or ''
+                            for alias in node.names:
+                                imports.append(f"{module}.{alias.name}" if module else alias.name)
+                except:
+                    pass
+            
+            # Extract file-level docstring
+            file_docstring = ""
+            if language == 'python':
+                try:
+                    tree = ast.parse(content)
+                    file_docstring = ast.get_docstring(tree) or ""
+                except:
+                    pass
+            
+            # Count functions/classes
+            num_functions = content.count('def ') if language == 'python' else 0
+            num_classes = content.count('class ') if language == 'python' else 0
+            
+            # Create file entry
+            file_entry = {
+                'task_type': 'file_completion',
+                'language': language,
+                'file_path': file_path,
+                'filename': Path(file_path).name,
+                'input': f"Complete the file: {Path(file_path).name}\n\nContext:\n{file_docstring[:200]}",
+                'output': content,
+                'imports': imports,
+                'file_docstring': file_docstring,
+                'num_functions': num_functions,
+                'num_classes': num_classes,
+                'hash': self.duplicate_manager.generate_hash(content),
+                'extracted_at': datetime.now().isoformat(),
+                'extraction_mode': 'full_file'
+            }
+            
+            return file_entry
+            
+        except Exception as e:
+            logger.debug(f"Error extracting full file {file_path}: {e}")
+            return None
 
     def process_repository(self, repo_url: str) -> Dict:
         """

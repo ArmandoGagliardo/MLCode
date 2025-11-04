@@ -162,7 +162,7 @@ class StorageManager:
 
     def download_datasets(self, force: bool = False) -> Dict[str, int]:
         """
-        Download datasets from cloud storage
+        Download datasets from cloud storage with integrity validation
 
         Args:
             force: If True, download all files. If False, only download new files.
@@ -184,11 +184,19 @@ class StorageManager:
                     self.remote_dataset_prefix,
                     self.local_dataset_dir
                 )
+                
+                # Validate downloaded files
+                validated_count = 0
+                for file_path in downloaded_files:
+                    if self._validate_downloaded_file(file_path):
+                        validated_count += 1
+                    else:
+                        logger.warning(f"File validation failed: {file_path}")
 
                 stats = {
-                    'downloaded': len(downloaded_files),
+                    'downloaded': validated_count,
                     'skipped': 0,
-                    'failed': len(files) - len(downloaded_files)
+                    'failed': len(files) - validated_count
                 }
             else:
                 # Sync only new files
@@ -204,6 +212,53 @@ class StorageManager:
         except Exception as e:
             logger.error(f"Error downloading datasets: {e}")
             return {'downloaded': 0, 'skipped': 0, 'failed': 1}
+    
+    def _validate_downloaded_file(self, file_path: str) -> bool:
+        """
+        Validate a downloaded file for integrity
+        
+        Args:
+            file_path: Path to file to validate
+            
+        Returns:
+            True if file is valid
+        """
+        try:
+            from pathlib import Path
+            import json
+            
+            file = Path(file_path)
+            
+            # Check file exists and is not empty
+            if not file.exists() or file.stat().st_size == 0:
+                logger.warning(f"File is empty or doesn't exist: {file_path}")
+                return False
+            
+            # For JSON/JSONL files, validate format
+            if file.suffix in ['.json', '.jsonl']:
+                with open(file, 'r', encoding='utf-8') as f:
+                    first_line = f.readline()
+                    if not first_line.strip():
+                        logger.warning(f"JSON file appears empty: {file_path}")
+                        return False
+                    
+                    # Try to parse as JSON
+                    try:
+                        json.loads(first_line)
+                    except json.JSONDecodeError:
+                        # Try as JSON array
+                        f.seek(0)
+                        try:
+                            json.load(f)
+                        except json.JSONDecodeError:
+                            logger.warning(f"Invalid JSON format: {file_path}")
+                            return False
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error validating file {file_path}: {e}")
+            return False
 
     def upload_datasets(self, force: bool = False) -> Dict[str, int]:
         """
@@ -245,8 +300,17 @@ class StorageManager:
             logger.info(f"Dataset upload complete: {stats}")
             return stats
 
+        except FileNotFoundError as e:
+            logger.error(f"Dataset directory not found: {e}")
+            return {'uploaded': 0, 'skipped': 0, 'failed': 1}
+        except PermissionError as e:
+            logger.error(f"Permission denied accessing datasets: {e}")
+            return {'uploaded': 0, 'skipped': 0, 'failed': 1}
+        except ConnectionError as e:
+            logger.error(f"Network connection error during upload: {e}")
+            return {'uploaded': 0, 'skipped': 0, 'failed': 1}
         except Exception as e:
-            logger.error(f"Error uploading datasets: {e}")
+            logger.error(f"Unexpected error uploading datasets: {type(e).__name__} - {e}", exc_info=True)
             return {'uploaded': 0, 'skipped': 0, 'failed': 1}
 
     def backup_model(

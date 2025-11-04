@@ -171,10 +171,11 @@ class TrainingMetricsTracker:
         # Auto-save after each epoch
         self.save()
 
+        val_loss_str = f"{val_loss:.4f}" if val_loss is not None else "N/A"
         logger.info(
             f"[EPOCH {epoch}] "
             f"Train Loss: {train_loss:.4f}, "
-            f"Val Loss: {val_loss:.4f if val_loss else 'N/A'}, "
+            f"Val Loss: {val_loss_str}, "
             f"LR: {learning_rate:.2e}, "
             f"Time: {epoch_time:.2f}s"
         )

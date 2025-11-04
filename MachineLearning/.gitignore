@@ -79,8 +79,9 @@ Thumbs.db
 
 # Env / secrets
 .env
-
 *.env
+config/.env*
+!config/.env*.example
 gpu_instance.env
 secrets.json
 credentials/

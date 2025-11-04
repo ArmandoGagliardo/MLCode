@@ -251,6 +251,244 @@ class UniversalParser(BaseParser):
             List of dictionaries with extracted functions
         """
         return self.parse(code, language)
+    
+    def extract_classes(self, code: str, language: str) -> List[Dict]:
+        """
+        Extract class definitions from code.
+
+        Args:
+            code: Source code to parse
+            language: Programming language
+
+        Returns:
+            List of class definitions with methods and context
+        """
+        lang = self.languages.get(language)
+        if not lang:
+            logger.warning(f"Language '{language}' not supported for class extraction")
+            return []
+
+        try:
+            parser = Parser()
+            parser.language = lang
+            tree = parser.parse(bytes(code, "utf8"))
+            root = tree.root_node
+
+            classes = []
+
+            # Node types for classes in different languages
+            class_types = {
+                "python": "class_definition",
+                "java": "class_declaration",
+                "javascript": "class_declaration",
+                "cpp": "class_specifier",
+                "csharp": "class_declaration",
+                "ruby": "class",
+                "php": "class_declaration"
+            }
+
+            class_node_type = class_types.get(language, "class_definition")
+
+            def find_classes(node: Node):
+                if node.type == class_node_type:
+                    class_info = self._extract_class_info(node, code, language)
+                    if class_info:
+                        classes.append(class_info)
+
+                for child in node.children:
+                    find_classes(child)
+
+            find_classes(root)
+            return classes
+
+        except Exception as e:
+            logger.error(f"Error extracting classes from {language} code: {e}")
+            return []
+
+    def _extract_class_info(self, node: Node, code: str, language: str) -> Optional[Dict]:
+        """
+        Extract detailed information from a class node.
+
+        Args:
+            node: Tree-sitter class node
+            code: Original source code
+            language: Programming language
+
+        Returns:
+            Dictionary with class information
+        """
+        try:
+            # Extract class name
+            class_name = None
+            for child in node.children:
+                if child.type in ["identifier", "name"]:
+                    class_name = code[child.start_byte:child.end_byte]
+                    break
+
+            if not class_name:
+                return None
+
+            # Extract class body
+            class_code = code[node.start_byte:node.end_byte]
+
+            # Extract methods within the class
+            methods = []
+            for child in node.children:
+                if child.type in ["function_definition", "method_definition", "method_declaration"]:
+                    method_info = self._extract_function_info(child, code, language)
+                    if method_info:
+                        methods.append(method_info)
+
+            # Extract docstring if Python
+            docstring = None
+            if language == "python":
+                # Look for string literal as first statement in class body
+                for child in node.children:
+                    if child.type == "block":
+                        for stmt in child.children:
+                            if stmt.type == "expression_statement":
+                                for expr_child in stmt.children:
+                                    if expr_child.type == "string":
+                                        docstring = code[expr_child.start_byte:expr_child.end_byte].strip('"""\'\'\'')
+                                        break
+                                break
+
+            # Extract parent class if any
+            parent_class = None
+            for child in node.children:
+                if child.type in ["argument_list", "superclass"]:
+                    parent_class = code[child.start_byte:child.end_byte].strip('()')
+                    break
+
+            return {
+                'task_type': 'class_definition',
+                'language': language,
+                'class_name': class_name,
+                'parent_class': parent_class,
+                'input': docstring or f"Write a {language} class named {class_name}",
+                'output': class_code,
+                'doc': docstring,
+                'methods': methods,
+                'method_count': len(methods),
+                'line_count': class_code.count('\n') + 1
+            }
+
+        except Exception as e:
+            logger.debug(f"Error extracting class info: {e}")
+            return None
+
+    def extract_with_docstring_pairs(self, code: str, language: str = 'python') -> List[Dict]:
+        """
+        Extract functions with explicit docstring→code pairing for training.
+        
+        Creates high-quality training examples with:
+        - Input: Docstring + function signature
+        - Output: Complete implementation
+        
+        Only functions WITH docstrings are included (higher quality indicator).
+        
+        Args:
+            code: Source code to parse
+            language: Programming language (currently optimized for Python)
+            
+        Returns:
+            List of training pairs:
+            [{
+                'task_type': 'doc_to_code',
+                'language': 'python',
+                'input': 'Calculate sum of two numbers\n\nSignature: sum(a, b)',
+                'output': 'def sum(a, b):\n    Calculate sum\n    return a + b',
+                'has_docstring': True,
+                'quality_indicator': 'high'
+            }]
+        
+        Example:
+            parser = UniversalParser()
+            pairs = parser.extract_with_docstring_pairs(python_code)
+            # Returns only functions with docstrings for better training data
+        """
+        pairs = []
+        
+        if language != 'python':
+            logger.warning(f"Docstring pairing optimized for Python, got {language}")
+            # Fall back to regular extraction for non-Python
+            return self.parse(code, language)
+        
+        try:
+            import ast
+            tree = ast.parse(code)
+            
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    # Extract docstring
+                    docstring = ast.get_docstring(node)
+                    
+                    if not docstring:
+                        # Skip functions without docstrings (lower quality)
+                        continue
+                    
+                    # Extract function name
+                    func_name = node.name
+                    
+                    # Extract parameters
+                    params = []
+                    for arg in node.args.args:
+                        param_name = arg.arg
+                        # Include type hint if present
+                        if arg.annotation:
+                            try:
+                                type_hint = ast.unparse(arg.annotation)
+                                params.append(f"{param_name}: {type_hint}")
+                            except:
+                                params.append(param_name)
+                        else:
+                            params.append(param_name)
+                    
+                    params_str = ", ".join(params)
+                    
+                    # Extract return type if present
+                    return_type = ""
+                    if node.returns:
+                        try:
+                            return_type = f" -> {ast.unparse(node.returns)}"
+                        except:
+                            pass
+                    
+                    # Build signature
+                    signature = f"def {func_name}({params_str}){return_type}:"
+                    
+                    # Extract complete implementation
+                    full_code = ast.unparse(node)
+                    
+                    # Create training pair
+                    # Input: Clear instruction with docstring + signature
+                    input_text = f"{docstring}\n\nSignature: {signature}"
+                    
+                    # Output: Complete implementation
+                    output_code = full_code
+                    
+                    pair = {
+                        'task_type': 'doc_to_code',
+                        'language': 'python',
+                        'func_name': func_name,
+                        'input': input_text,
+                        'output': output_code,
+                        'signature': signature,
+                        'doc': docstring,
+                        'has_docstring': True,
+                        'quality_indicator': 'high',  # Docstrings = better quality
+                        'args': params_str,
+                        'body': full_code
+                    }
+                    
+                    pairs.append(pair)
+                    
+        except SyntaxError as e:
+            logger.debug(f"Syntax error in code: {e}")
+        except Exception as e:
+            logger.error(f"Error extracting docstring pairs: {e}")
+        
+        return pairs
 
     def get_supported_languages(self) -> List[str]:
         """Get list of supported languages."""

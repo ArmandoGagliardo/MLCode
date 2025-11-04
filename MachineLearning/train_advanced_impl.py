@@ -53,11 +53,11 @@ def train_advanced(
     print("[*] ADVANCED TRAINING MODE")
     print("="*70)
     print("\nFeatures enabled:")
-    print("  ✓ Enhanced parser with caching and metrics")
-    print("  ✓ Detailed training metrics tracking")
-    print("  ✓ Automatic model validation")
-    print("  ✓ Checkpoint management and cleanup")
-    print("  ✓ Complete reporting and visualization")
+    print("  [OK] Enhanced parser with caching and metrics")
+    print("  [OK] Detailed training metrics tracking")
+    print("  [OK] Automatic model validation")
+    print("  [OK] Checkpoint management and cleanup")
+    print("  [OK] Complete reporting and visualization")
     print("="*70 + "\n")
 
     try:
@@ -165,7 +165,11 @@ def train_advanced(
         if task in ["code_generation"]:
             logger.info("Using AdvancedTrainer for generation task")
             from module.model.training_model_advanced import AdvancedTrainer
-            trainer = AdvancedTrainer(model_manager, use_gpu=True)
+            trainer = AdvancedTrainer(
+                model=model_manager.get_model(),
+                tokenizer=model_manager.get_tokenizer(),
+                use_gpu=True
+            )
             print("    Trainer: AdvancedTrainer (generation)")
         else:
             logger.info("Using AdvancedTrainerClassifier for classification task")
@@ -192,6 +196,7 @@ def train_advanced(
 
             # Training phase
             try:
+                logger.info(f"[TRAIN_LOOP] Starting training phase for epoch {epoch + 1}")
                 if task in ["code_generation"]:
                     # For generation tasks
                     train_loss = trainer.train_one_epoch(
@@ -210,8 +215,10 @@ def train_advanced(
                 print(f"  Train Loss: {train_loss:.4f}")
 
             except Exception as e:
-                logger.error(f"Training epoch failed: {e}")
+                logger.error(f"Training epoch failed: {e}", exc_info=True)
                 print(f"\n[FAIL] Training epoch {epoch + 1} failed: {e}")
+                import traceback
+                traceback.print_exc()
                 continue
 
             # Validation phase
@@ -281,11 +288,18 @@ def train_advanced(
         # Save final model
         print("\n[*] Saving final model...")
         try:
-            if hasattr(trainer, 'save_model'):
-                trainer.save_model(model_save_path)
-            else:
-                model_manager.save(model_save_path)
-
+            # Create output directory
+            os.makedirs(model_save_path, exist_ok=True)
+            
+            # Get the base model (unwrap DataParallel if needed)
+            model_to_save = trainer.model
+            if hasattr(model_to_save, 'module'):
+                model_to_save = model_to_save.module
+            
+            # Save model and tokenizer using HuggingFace methods
+            model_to_save.save_pretrained(model_save_path)
+            trainer.tokenizer.save_pretrained(model_save_path)
+            
             logger.info(f"Model saved to: {model_save_path}")
             print(f"    Model saved: {model_save_path}")
         except Exception as e:
@@ -345,7 +359,7 @@ def train_advanced(
         print("\n" + "="*70)
 
         if summary.get('validation', {}).get('passed', False):
-            print("\n[SUCCESS] Advanced training completed successfully! ✓")
+            print("\n[SUCCESS] Advanced training completed successfully!")
             logger.info("Advanced training completed successfully")
             return summary
         else:

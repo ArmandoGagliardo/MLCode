@@ -62,6 +62,7 @@ class RepoCleanup:
         # Importato da config.py per mantenere coerenza
         self.dataset_dirs = [
             LOCAL_DATASET_PATH,  # dataset_storage/local_backup/code_generation
+            Path("dataset_storage/the_stack/python")
         ]
         
         # Pattern da mantenere (whitelist)
@@ -190,29 +191,31 @@ class RepoCleanup:
         for dataset_dir in self.dataset_dirs:
             if not dataset_dir.exists():
                 continue
-            
+            print(dataset_dir)
             try:
-                # Trova tutti i file JSON eccetto summary/analysis
-                for file_path in dataset_dir.glob("*.json"):
-                    if not file_path.is_file():
-                        continue
-                    
-                    # Skip file speciali
-                    if file_path.name.startswith('analysis_') or file_path.name.startswith('summary_'):
-                        continue
-                    
-                    # Filtra per repository se specificato
-                    if filter_repo and not file_path.name.startswith(f"{filter_repo}_"):
-                        continue
-                    
-                    # Filtra per età se richiesto
-                    if old_only and not self.is_old_file(file_path, hours=min_age_hours):
-                        continue
-                    
-                    size = file_path.stat().st_size
-                    mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
-                    dataset_files.append((file_path, size, mtime))
-            
+                # Trova tutti i file JSON eccetto summary/analysis json e jsonl
+                
+                for extension in ["*.json", "*.jsonl"]:
+                    for file_path in dataset_dir.glob(extension):
+                        if not file_path.is_file():
+                            continue
+                        
+                        # Skip file speciali
+                        if file_path.name.startswith('analysis_') or file_path.name.startswith('summary_'):
+                            continue
+                        
+                        # Filtra per repository se specificato
+                        if filter_repo and not file_path.name.startswith(f"{filter_repo}_"):
+                            continue
+                        
+                        # Filtra per età se richiesto
+                        if old_only and not self.is_old_file(file_path, hours=min_age_hours):
+                            continue
+                        
+                        size = file_path.stat().st_size
+                        mtime = datetime.fromtimestamp(file_path.stat().st_mtime)
+                        dataset_files.append((file_path, size, mtime))
+                
             except (PermissionError, OSError) as e:
                 if self.verbose:
                     print(f"⚠️  Errore ricerca {dataset_dir}: {e}")

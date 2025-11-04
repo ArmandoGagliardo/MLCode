@@ -39,6 +39,7 @@ def check_dependencies() -> Dict[str, bool]:
         ("datasets", "HuggingFace Datasets"),
         ("numpy", "NumPy"),
         ("tqdm", "Progress Bars"),
+        ("radon", "Radon (Code Metrics)"),
     ]
 
     for module_name, display_name in core_deps:
@@ -48,6 +49,9 @@ def check_dependencies() -> Dict[str, bool]:
             results[module_name] = True
         except ImportError:
             print(f"  [FAIL] {display_name} - NOT INSTALLED")
+            results[module_name] = False
+        except Exception as e:
+            print(f"  [ERROR] {display_name} - {str(e)[:50]}")
             results[module_name] = False
 
     print()
@@ -73,6 +77,9 @@ def check_dependencies() -> Dict[str, bool]:
         except ImportError:
             print(f"  [FAIL] {display_name} - NOT INSTALLED")
             results[module_name] = False
+        except Exception as e:
+            print(f"  [ERROR] {display_name} - {str(e)[:50]}")
+            results[module_name] = False
 
     print()
 
@@ -91,6 +98,9 @@ def check_dependencies() -> Dict[str, bool]:
         except ImportError:
             print(f"  [WARN] {display_name} - NOT INSTALLED (optional)")
             results[module_name] = False
+        except Exception as e:
+            print(f"  [ERROR] {display_name} - {str(e)[:50]}")
+            results[module_name] = False
 
     print()
 
@@ -108,8 +118,29 @@ def check_dependencies() -> Dict[str, bool]:
             print(f"  [OK] GPU: {gpu_name}")
             results['cuda'] = True
         else:
-            print(f"  [WARN] CUDA Not Available (CPU only)")
-            results['cuda'] = False
+            # Prova ad installare nvidia cuda toolkit  
+            try:
+                if sys.platform.startswith('linux'):
+                    import subprocess
+                    subprocess.run(['sudo', 'apt-get', 'install', '-y', 'nvidia-cuda-toolkit'], check=True)
+                    torch.cuda.is_available()  # Re-check after installation
+                    if torch.cuda.is_available():
+                        cuda_version = torch.version.cuda
+                        gpu_count = torch.cuda.device_count()
+                        gpu_name = torch.cuda.get_device_name(0) if gpu_count > 0 else "Unknown"
+                        print(f"  [OK] CUDA Available after installation: {cuda_version}")
+                        print(f"  [OK] GPU Count: {gpu_count}")
+                        print(f"  [OK] GPU: {gpu_name}")
+                        results['cuda'] = True
+                    else:
+                        print(f"  [WARN] CUDA Not Available (CPU only)")
+                        results['cuda'] = False
+                elif sys.platform.startswith('win'):
+                    print(f"  [INFO] Windows detected - please install NVIDIA CUDA Toolkit manually.")
+                    results['cuda'] = False
+            except Exception as install_e:
+                 print(f"  [WARN] CUDA installation attempt failed: {install_e}")
+
     except Exception as e:
         print(f"  [FAIL] Error checking CUDA: {e}")
         results['cuda'] = False

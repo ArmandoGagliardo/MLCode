@@ -3,6 +3,8 @@ Code Quality Filter
 
 Filters code snippets based on quality metrics to ensure only good
 training data is used. Checks for syntax, completeness, length, etc.
+
+Version 1.2.0 - Added integration with AdvancedQualityFilter
 """
 
 import re
@@ -16,13 +18,18 @@ logger = logging.getLogger(__name__)
 class QualityFilter:
     """
     Filters code based on quality metrics.
+    
+    Can use either simple heuristics (fast) or advanced metrics (accurate).
+    Set use_advanced=True to enable radon-based quality scoring.
     """
 
     def __init__(self,
                  min_length: int = 10,
                  max_length: int = 10000,
                  min_lines: int = 2,
-                 max_lines: int = 500):
+                 max_lines: int = 500,
+                 use_advanced: bool = False,
+                 min_quality_score: int = 60):
         """
         Initialize quality filter.
 
@@ -31,11 +38,26 @@ class QualityFilter:
             max_length: Maximum character length
             min_lines: Minimum number of lines
             max_lines: Maximum number of lines
+            use_advanced: Enable advanced quality metrics (requires radon)
+            min_quality_score: Minimum score for advanced filter (0-100)
         """
         self.min_length = min_length
         self.max_length = max_length
         self.min_lines = min_lines
         self.max_lines = max_lines
+        self.use_advanced = use_advanced
+        
+        # Try to load advanced filter if requested
+        self.advanced_filter = None
+        if use_advanced:
+            try:
+                from module.preprocessing.advanced_quality_filter import AdvancedQualityFilter
+                self.advanced_filter = AdvancedQualityFilter(min_score=min_quality_score)
+                logger.info("✅ Advanced quality filter enabled (radon-based)")
+            except ImportError:
+                logger.warning("⚠️  Advanced filter requires 'radon'. Install: pip install radon")
+                logger.warning("⚠️  Falling back to simple quality filter")
+                self.use_advanced = False
 
         # Patterns to avoid (low quality indicators)
         self.bad_patterns = [
@@ -227,6 +249,8 @@ class QualityFilter:
     def is_valid_code(self, code: str, language: str = 'python') -> bool:
         """
         Comprehensive code quality check.
+        
+        Uses advanced metrics if enabled (radon-based), otherwise simple heuristics.
 
         Args:
             code: Code string to check
@@ -237,7 +261,16 @@ class QualityFilter:
         """
         if not code or not code.strip():
             return False
+        
+        # If advanced filter enabled and code is Python, use it
+        if self.use_advanced and self.advanced_filter and language == 'python':
+            try:
+                return self.advanced_filter.is_valid_code(code)
+            except Exception as e:
+                logger.debug(f"Advanced filter failed: {e}, using simple checks")
+                # Fall through to simple checks
 
+        # Simple validation checks (heuristic-based)
         # Length checks
         if not self.is_valid_length(code):
             logger.debug("Code failed length check")
