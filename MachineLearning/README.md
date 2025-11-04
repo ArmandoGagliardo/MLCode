@@ -1,13 +1,19 @@
 # Machine Learning Multi-Language Code Extraction & Training System
 
-A system for extracting code from GitHub repositories and training ML models across 7 programming languages, with advanced quality filtering, cloud storage integration, and automated training pipeline.
+A professional, production-ready system for extracting code from GitHub repositories and training ML models, built with Clean Architecture, SOLID principles, and best practices.
 
-> **📊 Project Status: Development (v0.8 - 80% Complete)**
-> Core extraction and training pipelines are functional. Some features are experimental.
-> See [Project Status](#-project-status) below for details.
+> **📊 Project Status: v2.0.0 - Major Refactoring Complete**
+> The project has been completely refactored following Clean Architecture principles with full OOP design, dependency injection, and comprehensive documentation for self-study.
 
-> **🎉 NEW: Complete Training Pipeline Implemented!**
-> Train ML models with your extracted data in 30 minutes. See [SISTEMA_COMPLETO.md](SISTEMA_COMPLETO.md) for full details.
+> **🎉 NEW v2.0: Clean Architecture + Complete Refactoring!**
+> - ✅ Clean Architecture (4 layers)
+> - ✅ SOLID Principles applied throughout
+> - ✅ Dependency Injection pattern
+> - ✅ Comprehensive documentation
+> - ✅ Production-ready code quality
+>
+> See [ARCHITECTURE.md](ARCHITECTURE.md) for complete architectural documentation.
+> See [REFACTORING_PROGRESS.md](REFACTORING_PROGRESS.md) for refactoring status.
 
 ## ✨ Features
 
