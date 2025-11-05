@@ -8,7 +8,17 @@
       "Bash(find:*)",
       "Bash(pip install:*)",
       "Bash(du:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(printf:*)",
+      "Bash(__NEW_LINE__ printf '⚠️  COMPONENTI PARZIALI (50-89%%):\\n')",
+      "Bash(__NEW_LINE__ printf '❌ COMPONENTI MANCANTI (0%%):\\n')",
+      "Bash(__NEW_LINE__ printf '📊 METRICHE QUALITA'':\\n')",
+      "Bash(__NEW_LINE__ printf '⚡ AZIONI CRITICHE IMMEDIATE (2-3 ore):\\n')",
+      "Bash(__NEW_LINE__ printf '📈 ROADMAP 2-3 SETTIMANE:\\n')",
+      "Bash(__NEW_LINE__ printf '✅ COMPLIANCE:\\n')",
+      "Bash(__NEW_LINE__ printf '📋 VERDICT:\\n')",
+      "Bash(echo:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

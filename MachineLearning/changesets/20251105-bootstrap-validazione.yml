@@ -1,0 +1,15 @@
+id: 20251105-bootstrap-validazione
+owner: armando
+scope: "Bootstrap struttura memoria agente"
+rationale: "Introdurre regole di qualità e persistenza conoscenza"
+files:
+  - .agent/policy.md
+  - .agent/instructions.prompt.md
+  - .agent/memory/memory.jsonl
+  - docs/architecture.md
+tests:
+  - "pytest -q || echo 'nessun test definito'"
+  - "git status --porcelain"
+rollback:
+  - "git checkout -- .agent docs .vscode changesets || true"
+status: "ready"

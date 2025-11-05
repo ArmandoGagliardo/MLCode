@@ -112,11 +112,7 @@ class ParserService:
             ParsingError: If parsing fails
 
         Example:
-            >>> code = '''
-            ... def calculate_sum(a, b):
-            ...     """Calculate sum of two numbers"""
-            ...     return a + b
-            ... '''
+            >>> code = "def calculate_sum(a, b):\\n    return a + b"
             >>> samples = service.parse_and_filter(code, 'python', min_quality=60.0)
             >>> assert len(samples) >= 1
             >>> assert samples[0].name == 'calculate_sum'

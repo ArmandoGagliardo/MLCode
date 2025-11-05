@@ -1,0 +1,33 @@
+id: 20251101-phase1-clean-architecture
+owner: armando
+scope: "Phase 1: Clean Architecture Foundation"
+rationale: "Migrate from monolithic module/ architecture to Clean Architecture v2.0 with 4 layers (Domain, Application, Infrastructure, Presentation)"
+files:
+  - domain/models/*.py
+  - domain/interfaces/*.py
+  - domain/exceptions.py
+  - application/services/__init__.py
+  - application/use_cases/__init__.py
+  - infrastructure/__init__.py
+  - presentation/__init__.py
+  - config/container.py
+impacts:
+  - "Complete restructuring from 1 layer to 4 layers"
+  - "30 domain files created (1,363 LOC)"
+  - "Layer separation with zero circular dependencies"
+  - "15 interfaces defined"
+  - "8 custom exceptions"
+tests:
+  - "python -m pytest tests/domain/ -v"
+  - "python -c 'from domain.models import CodeSample; print(\"OK\")'"
+  - "python -c 'from domain.interfaces import IStorageProvider; print(\"OK\")'"
+rollback:
+  - "git checkout HEAD~10 -- domain/ application/ infrastructure/ presentation/"
+status: "completed"
+completion_date: "2025-11-01"
+metrics:
+  - "Files created: 30"
+  - "LOC: 1,363"
+  - "Interfaces: 15"
+  - "Exceptions: 8"
+  - "Clean Architecture compliance: 100%"

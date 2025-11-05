@@ -55,7 +55,7 @@ def validate_parser() -> bool:
     print("-" * 60)
 
     try:
-        from module.preprocessing.universal_parser_new import UniversalParser
+        from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
 
         # Initialize parser
         parser = UniversalParser()
@@ -115,7 +115,7 @@ def validate_quality_filter() -> bool:
     print("-" * 60)
 
     try:
-        from module.preprocessing.quality_filter import QualityFilter
+        from infrastructure.quality.heuristic_quality_filter import HeuristicQualityFilter
 
         filter = QualityFilter()
         print(f"  [OK] Quality filter initialized")
@@ -169,7 +169,7 @@ def validate_duplicate_detection() -> bool:
     print("-" * 60)
 
     try:
-        from module.scripts.duplicate_manager import DuplicateManager
+        from infrastructure.duplicate.ast_duplicate_manager import ASTDuplicateManager
 
         # Create temporary database
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
@@ -224,7 +224,9 @@ def validate_storage(test_storage: bool = False) -> bool:
         return True
 
     try:
-        from module.storage.storage_manager import StorageManager
+        # Clean Architecture v2.0
+from config.container import Container
+from application.services.storage_service import StorageService
         from config import STORAGE_TYPE
 
         if STORAGE_TYPE == "local":

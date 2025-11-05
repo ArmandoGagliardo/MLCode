@@ -26,7 +26,9 @@ from datetime import datetime
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from module.storage.storage_manager import StorageManager
+# Use Clean Architecture v2.0 - NO module/ imports!
+from config.container import Container
+from application.services.storage_service import StorageService
 import torch
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
@@ -47,7 +49,7 @@ class CloudDataset(Dataset):
     def __init__(self,
                  task_type: str,
                  tokenizer,
-                 storage_manager: StorageManager,
+                 storage_service: StorageService,
                  cache_size: int = 10000,
                  shuffle: bool = True):
         """
@@ -56,13 +58,13 @@ class CloudDataset(Dataset):
         Args:
             task_type: Type of task (code_generation, text_classification, etc.)
             tokenizer: HuggingFace tokenizer
-            storage_manager: Storage manager for cloud access
+            storage_service: Storage service for cloud access (Clean Architecture v2.0)
             cache_size: Number of samples to cache in memory
             shuffle: Whether to shuffle data
         """
         self.task_type = task_type
         self.tokenizer = tokenizer
-        self.storage = storage_manager
+        self.storage = storage_service
         self.cache_size = cache_size
         self.shuffle = shuffle
 
@@ -278,8 +280,9 @@ class CloudDatasetLoader:
         self.num_workers = num_workers
         self.cache_size = cache_size
 
-        # Initialize storage manager
-        self.storage = StorageManager()
+        # Initialize storage service via Container (Clean Architecture v2.0)
+        container = Container()
+        self.storage = container.storage_service()
         if not self.storage.connect():
             raise ConnectionError("Failed to connect to cloud storage")
 
@@ -301,7 +304,7 @@ class CloudDatasetLoader:
         self.dataset = CloudDataset(
             task_type=task_type,
             tokenizer=self.tokenizer,
-            storage_manager=self.storage,
+            storage_service=self.storage,
             cache_size=cache_size,
             shuffle=shuffle
         )

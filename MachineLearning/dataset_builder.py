@@ -53,10 +53,12 @@ from tqdm import tqdm
 sys.path.append(str(Path(__file__).parent))
 
 from github_repo_processor import GitHubRepoProcessor
-from module.storage.storage_manager import StorageManager
-from module.preprocessing.universal_parser_new import UniversalParser
-from module.preprocessing.advanced_quality_filter import AdvancedQualityFilter
-from module.utils.duplicate_manager import DuplicateManager
+# Clean Architecture v2.0
+from config.container import Container
+from application.services.storage_service import StorageService
+from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
+from infrastructure.quality.heuristic_quality_filter import HeuristicQualityFilter
+from infrastructure.duplicate.ast_duplicate_manager import ASTDuplicateManager
 from config import CLOUD_DATASET_PATH
 
 # Setup logging

@@ -1,0 +1,41 @@
+id: 20251105-phase3-inference-migration
+owner: armando
+scope: "Phase 3: Inference Service Migration - Critical Path to module/ deletion"
+rationale: "Migrate module/tasks/ to application/services/ to unblock gpu_server.py and enable module/ deletion"
+priority: "P0 CRITICAL"
+blocks:
+  - "gpu_server.py"
+  - "ARCH-002 (module/ deletion)"
+  - "Production inference capability"
+files_to_create:
+  - application/services/inference_service.py
+  - infrastructure/inference/model_loader.py
+  - infrastructure/inference/text_classifier.py
+  - infrastructure/inference/security_classifier.py
+  - infrastructure/inference/__init__.py
+files_to_update:
+  - gpu_server.py (refactor to use InferenceService)
+  - config/container.py (add inference_service)
+files_to_migrate_from:
+  - module/tasks/inference_engine.py → application/services/inference_service.py
+  - module/tasks/text_classifier.py → infrastructure/inference/text_classifier.py
+  - module/tasks/security_classifier.py → infrastructure/inference/security_classifier.py
+  - module/tasks/task_pipeline.py → (logic integrated in InferenceService)
+impacts:
+  - "Unblocks gpu_server.py"
+  - "Enables inference in new architecture"
+  - "Critical step to module/ deletion"
+tests:
+  - "python -c 'from application.services.inference_service import InferenceService; print(\"OK\")'"
+  - "python -c 'from infrastructure.inference import TextClassifier, SecurityClassifier; print(\"OK\")'"
+  - "python gpu_server.py --help (should work)"
+rollback:
+  - "git checkout HEAD~1 -- application/services/inference_service.py infrastructure/inference/"
+status: "in_progress"
+estimated_effort: "8 hours"
+actual_effort: "TBD"
+next_steps:
+  - "Create InferenceService with model loading"
+  - "Migrate text and security classifiers"
+  - "Update gpu_server.py"
+  - "Test inference pipeline"

@@ -63,3 +63,13 @@ class AuthenticationError(MLProjectException):
 class NetworkError(MLProjectException):
     """Network-related error"""
     pass
+
+
+class FetchError(MLProjectException):
+    """Error fetching data from external sources"""
+    pass
+
+
+class RateLimitError(MLProjectException):
+    """API rate limit exceeded"""
+    pass

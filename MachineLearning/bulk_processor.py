@@ -39,8 +39,10 @@ except ImportError:
     print("Warning: HuggingFace datasets not installed. Run: pip install datasets")
 
 from github_repo_processor import GitHubRepoProcessor
-from module.storage.storage_manager import StorageManager
-from module.preprocessing.universal_parser_new import UniversalParser
+# Clean Architecture v2.0 - NO module/ imports!
+from config.container import Container
+from application.services.storage_service import StorageService
+from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
 
 # Setup logging
 logging.basicConfig(
@@ -196,9 +198,13 @@ class BulkProcessor:
         ]
     }
 
-    def __init__(self, storage_manager: Optional[StorageManager] = None):
+    def __init__(self, storage_service: Optional[StorageService] = None):
         """Initialize bulk processor."""
-        self.storage = storage_manager or StorageManager()
+        # Use Clean Architecture v2.0
+        if storage_service is None:
+            container = Container()
+            storage_service = container.storage_service()
+        self.storage = storage_service
         self.stats = {
             'start_time': datetime.now(),
             'datasets_processed': 0,
@@ -351,8 +357,8 @@ class BulkProcessor:
         batch = []
         total_processed = 0
         
-        # Create parser once for efficiency
-        parser = UniversalParser()
+        # Create parser once for efficiency (Clean Architecture v2.0)
+        parser = TreeSitterParser()
 
         for item in dataset['train']:
             # Extract code content

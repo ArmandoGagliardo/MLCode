@@ -1,8 +1,16 @@
 """
 GPU Instance API Server
+========================
+
+FastAPI server for machine learning inference on GPU instances.
 
 This server runs ON the GPU instance (e.g., Brev) after training completes.
-It loads the trained models and exposes REST API endpoints for inference.
+It loads trained models and exposes REST API endpoints for inference.
+
+Architecture:
+    - Uses Clean Architecture v2.0
+    - InferenceService orchestrates all model operations
+    - Dependency injection via Container
 
 Usage:
     uvicorn gpu_server:app --host 0.0.0.0 --port 8000
@@ -24,10 +32,11 @@ import logging
 import os
 from pathlib import Path
 
-# Import inference engines
-from module.tasks.inference_engine import InferenceEngine
-from module.tasks.text_classifier import TextClassifier
-from module.tasks.security_classifier import SecurityClassifier
+# Import application services (Clean Architecture v2.0)
+from application.services.inference_service import InferenceService
+from infrastructure.inference import GenerationConfig
+from domain.exceptions import InferenceError
+from config.container import Container
 
 # Setup logging
 logging.basicConfig(
@@ -59,8 +68,9 @@ MODEL_PATHS = {
     "security_classification": "models/security_classification"
 }
 
-# Global model instances (loaded on startup)
-models: Dict[str, Any] = {}
+# Global inference service (loaded on startup)
+inference_service: Optional[InferenceService] = None
+container: Optional[Container] = None
 
 # Request/Response models
 class CodeGenerationRequest(BaseModel):
@@ -97,8 +107,10 @@ class ModelsResponse(BaseModel):
 
 @app.on_event("startup")
 async def load_models():
-    """Load all trained models on server startup"""
-    logger.info("Starting GPU Inference Server...")
+    """Load all trained models on server startup using Clean Architecture"""
+    global inference_service, container
+
+    logger.info("Starting GPU Inference Server (Clean Architecture v2.0)...")
     logger.info(f"CUDA available: {torch.cuda.is_available()}")
 
     if torch.cuda.is_available():
@@ -106,66 +118,114 @@ async def load_models():
         logger.info(f"GPU device: {torch.cuda.get_device_name(0)}")
         logger.info(f"GPU count: {torch.cuda.device_count()}")
 
+    # Initialize DI container
+    container = Container()
+
+    # Get inference service with auto device detection
+    inference_service = container.inference_service(device=None)
+
+    loaded_count = 0
+
     # Load code generation model
     code_gen_path = MODEL_PATHS["code_generation"]
     if os.path.exists(code_gen_path):
         try:
             logger.info(f"Loading code generation model from {code_gen_path}...")
-            models["code_generation"] = InferenceEngine(code_gen_path)
+            # Configure generation with optimal parameters
+            config = GenerationConfig(
+                max_new_tokens=128,
+                do_sample=True,
+                temperature=0.8,
+                top_p=0.95,
+                num_beams=5,
+                early_stopping=True
+            )
+            inference_service.load_code_generator(
+                model_path=code_gen_path,
+                model_type='seq2seq',
+                config=config,
+                local_files_only=True
+            )
             logger.info("Code generation model loaded successfully!")
-        except Exception as e:
+            loaded_count += 1
+        except InferenceError as e:
             logger.error(f"Failed to load code generation model: {e}")
-            models["code_generation"] = None
+        except Exception as e:
+            logger.error(f"Unexpected error loading code generation model: {e}")
     else:
         logger.warning(f"Code generation model not found at {code_gen_path}")
-        models["code_generation"] = None
 
     # Load text classification model
     text_class_path = MODEL_PATHS["text_classification"]
     if os.path.exists(text_class_path):
         try:
             logger.info(f"Loading text classification model from {text_class_path}...")
-            models["text_classification"] = TextClassifier(text_class_path)
+            # Define label names if available (adjust based on your model)
+            label_names = ["negative", "positive"]  # Binary classification
+            inference_service.load_text_classifier(
+                model_path=text_class_path,
+                label_names=label_names,
+                local_files_only=True
+            )
             logger.info("Text classification model loaded successfully!")
-        except Exception as e:
+            loaded_count += 1
+        except InferenceError as e:
             logger.error(f"Failed to load text classification model: {e}")
-            models["text_classification"] = None
+        except Exception as e:
+            logger.error(f"Unexpected error loading text classification model: {e}")
     else:
         logger.warning(f"Text classification model not found at {text_class_path}")
-        models["text_classification"] = None
 
     # Load security classification model
     security_class_path = MODEL_PATHS["security_classification"]
     if os.path.exists(security_class_path):
         try:
             logger.info(f"Loading security classification model from {security_class_path}...")
-            models["security_classification"] = SecurityClassifier(security_class_path)
+            # Define security labels
+            label_names = ["safe", "warning", "critical"]
+            inference_service.load_security_classifier(
+                model_path=security_class_path,
+                label_names=label_names,
+                vulnerability_threshold=0.5,
+                local_files_only=True
+            )
             logger.info("Security classification model loaded successfully!")
-        except Exception as e:
+            loaded_count += 1
+        except InferenceError as e:
             logger.error(f"Failed to load security classification model: {e}")
-            models["security_classification"] = None
+        except Exception as e:
+            logger.error(f"Unexpected error loading security classification model: {e}")
     else:
         logger.warning(f"Security classification model not found at {security_class_path}")
-        models["security_classification"] = None
 
-    loaded_count = sum(1 for m in models.values() if m is not None)
     logger.info(f"Models loaded: {loaded_count}/{len(MODEL_PATHS)}")
 
     if loaded_count == 0:
-        logger.warning("[WARNING]  No models loaded! Make sure to train models before starting the server.")
+        logger.warning("[WARNING] No models loaded! Make sure to train models before starting the server.")
 
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
+    if inference_service is None:
+        models_loaded = {
+            "code_generation": False,
+            "text_classification": False,
+            "security_classification": False
+        }
+    else:
+        loaded = inference_service.get_loaded_models()
+        models_loaded = {
+            "code_generation": loaded.get('code_generator', False),
+            "text_classification": loaded.get('text_classifier', False),
+            "security_classification": loaded.get('security_classifier', False)
+        }
+
     return {
         "status": "healthy",
         "gpu_available": torch.cuda.is_available(),
         "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
-        "models_loaded": {
-            name: model is not None
-            for name, model in models.items()
-        }
+        "models_loaded": models_loaded
     }
 
 
@@ -174,20 +234,32 @@ async def list_models():
     """List loaded models and their information"""
     models_info = {}
 
-    for name, model in models.items():
-        if model is not None:
-            device = getattr(model, 'device', None)
-            models_info[name] = {
-                "loaded": True,
-                "device": str(device) if device else "unknown",
-                "path": MODEL_PATHS[name]
-            }
-        else:
+    if inference_service is None:
+        for name in MODEL_PATHS:
             models_info[name] = {
                 "loaded": False,
                 "device": None,
                 "path": MODEL_PATHS[name]
             }
+    else:
+        loaded = inference_service.get_loaded_models()
+        device_str = str(inference_service.device) if hasattr(inference_service, 'device') else "auto"
+
+        models_info["code_generation"] = {
+            "loaded": loaded.get('code_generator', False),
+            "device": device_str if loaded.get('code_generator', False) else None,
+            "path": MODEL_PATHS["code_generation"]
+        }
+        models_info["text_classification"] = {
+            "loaded": loaded.get('text_classifier', False),
+            "device": device_str if loaded.get('text_classifier', False) else None,
+            "path": MODEL_PATHS["text_classification"]
+        }
+        models_info["security_classification"] = {
+            "loaded": loaded.get('security_classifier', False),
+            "device": device_str if loaded.get('security_classifier', False) else None,
+            "path": MODEL_PATHS["security_classification"]
+        }
 
     return {"models": models_info}
 
@@ -196,7 +268,7 @@ async def list_models():
 async def generate_code(request: CodeGenerationRequest):
     """Generate code from description"""
     try:
-        if models.get("code_generation") is None:
+        if inference_service is None or not inference_service.is_code_generator_loaded():
             raise HTTPException(
                 status_code=503,
                 detail="Code generation model not loaded. Please train the model first."
@@ -204,8 +276,21 @@ async def generate_code(request: CodeGenerationRequest):
 
         logger.info(f"Generating code for prompt: {request.prompt[:100]}...")
 
-        # Generate code
-        generated_code = models["code_generation"].generate(request.prompt)
+        # Configure generation with request parameters
+        config = GenerationConfig(
+            max_new_tokens=request.max_tokens,
+            temperature=request.temperature,
+            top_p=request.top_p,
+            do_sample=True,
+            num_beams=5,
+            early_stopping=True
+        )
+
+        # Generate code using InferenceService
+        generated_code = inference_service.generate_code(
+            prompt=request.prompt,
+            config=config
+        )
 
         return {
             "success": True,
@@ -217,8 +302,11 @@ async def generate_code(request: CodeGenerationRequest):
 
     except HTTPException:
         raise
-    except Exception as e:
+    except InferenceError as e:
         logger.error(f"Code generation error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error during code generation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -226,7 +314,7 @@ async def generate_code(request: CodeGenerationRequest):
 async def classify_text(request: ClassificationRequest):
     """Classify text (binary classification)"""
     try:
-        if models.get("text_classification") is None:
+        if inference_service is None or not inference_service.is_text_classifier_loaded():
             raise HTTPException(
                 status_code=503,
                 detail="Text classification model not loaded. Please train the model first."
@@ -234,25 +322,30 @@ async def classify_text(request: ClassificationRequest):
 
         logger.info(f"Classifying text: {request.text[:100]}...")
 
-        # Classify
-        prediction = models["text_classification"].classify(request.text)
-
-        # Map prediction to label
-        label = "positive" if prediction == 1 else "negative"
+        # Classify using InferenceService
+        result = inference_service.classify_text(
+            text=request.text,
+            return_confidence=True,
+            return_all_scores=False
+        )
 
         return {
             "success": True,
             "data": {
-                "prediction": int(prediction),
-                "label": label,
+                "prediction": result['label'],
+                "label": result.get('label_name', 'unknown'),
+                "confidence": result.get('confidence', 0.0),
                 "text": request.text
             }
         }
 
     except HTTPException:
         raise
-    except Exception as e:
+    except InferenceError as e:
         logger.error(f"Classification error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error during classification: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -260,7 +353,7 @@ async def classify_text(request: ClassificationRequest):
 async def analyze_security(request: SecurityAnalysisRequest):
     """Analyze code for security vulnerabilities"""
     try:
-        if models.get("security_classification") is None:
+        if inference_service is None or not inference_service.is_security_classifier_loaded():
             raise HTTPException(
                 status_code=503,
                 detail="Security classification model not loaded. Please train the model first."
@@ -268,27 +361,31 @@ async def analyze_security(request: SecurityAnalysisRequest):
 
         logger.info(f"Analyzing code for security issues...")
 
-        # Analyze
-        prediction = models["security_classification"].classify(request.code)
-
-        # Map prediction to security level
-        # Assuming 0 = safe, 1 = warning, 2 = critical (adjust based on your model)
-        security_levels = ["safe", "warning", "critical"]
-        level = security_levels[prediction] if prediction < len(security_levels) else "unknown"
+        # Analyze using InferenceService
+        result = inference_service.classify_security(
+            text=request.code,
+            return_confidence=True,
+            return_all_scores=False
+        )
 
         return {
             "success": True,
             "data": {
-                "prediction": int(prediction),
-                "level": level,
+                "prediction": result['label'],
+                "level": result.get('label_name', 'unknown'),
+                "is_vulnerable": result.get('is_vulnerable', False),
+                "confidence": result.get('confidence', 0.0),
                 "code": request.code
             }
         }
 
     except HTTPException:
         raise
-    except Exception as e:
+    except InferenceError as e:
         logger.error(f"Security analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error during security analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

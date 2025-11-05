@@ -12,10 +12,12 @@ from domain.interfaces.parser import IParser
 from domain.interfaces.storage import IStorageProvider
 from domain.interfaces.quality_filter import IQualityFilter
 from domain.interfaces.duplicate_manager import IDuplicateManager
+from domain.interfaces.repository_fetcher import IRepositoryFetcher
 
 __all__ = [
     'IParser',
     'IStorageProvider',
     'IQualityFilter',
     'IDuplicateManager',
+    'IRepositoryFetcher',
 ]

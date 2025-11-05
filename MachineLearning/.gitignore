@@ -164,3 +164,9 @@ dataset_storage/raw/
 dataset_storage/processed/
 dataset_storage/interim/
 dataset_storage/external/
+
+# === agent bootstrap ===
+out/
+scratch/
+.agent/cache/
+.agent/*.log

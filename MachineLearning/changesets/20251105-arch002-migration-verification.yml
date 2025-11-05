@@ -1,0 +1,105 @@
+id: 20251105-arch002-migration-verification
+owner: armando
+scope: "ARCH-002: Verification of module/ to Clean Architecture migration completeness"
+rationale: "Critical check to determine if module/ can be safely deleted without breaking functionality"
+analysis:
+  total_files_in_module: 78
+  total_loc_in_module: 8994
+  migration_completeness: 85%
+  components_migrated:
+    - "Parsers: 11 files → 1 TreeSitterParser (100%)"
+    - "Storage: 7 files → 6 providers + factory (100%)"
+    - "Training: 7 files → 5 components (100%)"
+    - "Quality Filter: 3 files → 1 unified (90%)"
+    - "Deduplication: 1 file → 1 enhanced (100%)"
+  components_missing:
+    - "Tasks/Inference: 6 files (0% - CRITICAL)"
+    - "Security: 6 files (0% - HIGH)"
+    - "Web Crawlers: 6 files (0% - MEDIUM)"
+findings:
+  critical_blockers:
+    - file: "gpu_server.py"
+      depends_on:
+        - "module/tasks/inference_engine.py"
+        - "module/tasks/text_classifier.py"
+        - "module/tasks/security_classifier.py"
+      impact: "Application breaks if module/ deleted"
+      priority: "P0 CRITICAL"
+    - file: "module/storage/storage_manager.py"
+      used_by:
+        - "bulk_processor.py"
+        - "cloud_dataset_loader.py"
+        - "dataset_builder.py"
+        - "github_repo_processor.py"
+        - "test_improvements.py"
+        - "train_advanced_impl.py"
+        - "validate_pipeline.py"
+      count: 7
+      impact: "7 root scripts fail"
+      priority: "P0 CRITICAL"
+  total_dependencies:
+    count: 45
+    unique_files: 13
+    breakdown:
+      - "bulk_processor.py"
+      - "cloud_dataset_loader.py"
+      - "dataset_builder.py"
+      - "evaluate_model.py"
+      - "github_repo_processor.py"
+      - "gpu_server.py"
+      - "integrations/the_stack_loader.py"
+      - "legacy/run_pipeline.py"
+      - "legacy/train_generic.py"
+      - "main.py"
+      - "test_improvements.py"
+      - "train_advanced_impl.py"
+      - "validate_pipeline.py"
+decision:
+  status: "NOT SAFE TO DELETE"
+  verdict: "⚠️ PARTIAL MIGRATION - 15% critical features missing"
+  safe_to_delete: false
+  requires:
+    - "Migrate module/tasks/ to application/services/ (8h)"
+    - "Migrate module/security/ to infrastructure/security/ (10h)"
+    - "Refactor 13 dependent files (16h)"
+    - "Migrate web crawlers (8h)"
+  total_effort: "58 hours (~1.5 weeks)"
+safe_deletion_criteria:
+  - "Zero imports from module/ in root scripts"
+  - "Zero imports from module/ in new architecture"
+  - "All features migrated and tested"
+  - "Legacy folder deprecated"
+  - "Backup branch created"
+immediate_actions:
+  phase_1:
+    - "Create InferenceService (application/services/inference_service.py)"
+    - "Migrate text_classifier, security_classifier"
+    - "Update gpu_server.py to use new services"
+    - "Effort: 8 hours"
+  phase_2:
+    - "Refactor 13 root scripts to use new architecture"
+    - "Replace storage_manager → storage_service"
+    - "Replace universal_parser_new → tree_sitter_parser"
+    - "Effort: 16 hours"
+  phase_3:
+    - "Migrate security module"
+    - "Migrate web crawlers"
+    - "Update tests"
+    - "Effort: 18 hours"
+rollback:
+  - "N/A - Verification only, no changes made"
+status: "completed"
+completion_date: "2025-11-05"
+next_steps:
+  - "Update open_threads.md with ARCH-002 status"
+  - "Create changeset for Phase 1 (InferenceService)"
+  - "Begin migration work as per roadmap"
+documentation:
+  - "MIGRATION_AUDIT_COMPLETE.md (dependency analysis)"
+  - "This changeset (verification results)"
+metrics:
+  dependencies_found: 45
+  unique_files_affected: 13
+  components_missing: 3
+  effort_to_safe_deletion: 58
+  weeks_to_completion: 1.5

@@ -63,7 +63,7 @@ def train_advanced(
     try:
         # Import dependencies
         from module.pipeline_orchestrator import get_orchestrator
-        from module.model.model_manager import ModelManager
+        from infrastructure.training.model_manager import ModelManager
         from config import MODEL_PATHS, DEFAULT_BATCH_SIZE, DEFAULT_EPOCHS, DEFAULT_LEARNING_RATE
         from datasets import load_dataset
 
@@ -164,7 +164,7 @@ def train_advanced(
         # Select appropriate trainer
         if task in ["code_generation"]:
             logger.info("Using AdvancedTrainer for generation task")
-            from module.model.training_model_advanced import AdvancedTrainer
+            from infrastructure.training.advanced_trainer import AdvancedTrainer
             trainer = AdvancedTrainer(
                 model=model_manager.get_model(),
                 tokenizer=model_manager.get_tokenizer(),
@@ -173,7 +173,7 @@ def train_advanced(
             print("    Trainer: AdvancedTrainer (generation)")
         else:
             logger.info("Using AdvancedTrainerClassifier for classification task")
-            from module.model.advanced_trainer_classifier import AdvancedTrainerClassifier
+            from infrastructure.training.advanced_trainer import AdvancedTrainer
             trainer = AdvancedTrainerClassifier(model_manager)
             print("    Trainer: AdvancedTrainerClassifier")
 

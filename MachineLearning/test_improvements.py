@@ -2,7 +2,7 @@
 
 # Test 1: AST Dedup
 print("Test 1: AST-Aware Deduplication")
-from module.utils.duplicate_manager import DuplicateManager
+from infrastructure.duplicate.ast_duplicate_manager import ASTDuplicateManager
 
 dm = DuplicateManager(use_ast_hash=True)
 
@@ -19,7 +19,7 @@ else:
 
 # Test 2: Advanced Quality Filter
 print("\nTest 2: Advanced Quality Filter")
-from module.preprocessing.advanced_quality_filter import AdvancedQualityFilter
+from infrastructure.quality.heuristic_quality_filter import HeuristicQualityFilter
 
 filter = AdvancedQualityFilter(min_score=70)  # Threshold più strict
 
@@ -53,7 +53,7 @@ else:
 
 # Test 3: Docstring Pairing
 print("\nTest 3: Docstring→Code Pairing")
-from module.preprocessing.universal_parser_new import UniversalParser
+from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
 
 parser = UniversalParser()
 

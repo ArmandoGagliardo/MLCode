@@ -40,9 +40,9 @@ from tqdm import tqdm
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from module.preprocessing.universal_parser_new import UniversalParser
-from module.preprocessing.advanced_quality_filter import AdvancedQualityFilter
-from module.utils.duplicate_manager import DuplicateManager
+from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
+from infrastructure.quality.heuristic_quality_filter import HeuristicQualityFilter
+from infrastructure.duplicate.ast_duplicate_manager import ASTDuplicateManager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

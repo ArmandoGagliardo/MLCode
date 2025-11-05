@@ -2,7 +2,29 @@
 ML Code Intelligence System - Main Entry Point
 ===============================================
 
-Questo è il file principale del sistema di Machine Learning per l'analisi e 
+**DEPRECATION NOTICE**
+----------------------
+This file is DEPRECATED and will be removed in v3.0.0
+
+Please use the new CLI interface instead:
+    python -m presentation.cli --help
+
+Migration examples:
+    OLD: python main.py --collect-data --language python --count 20
+    NEW: python -m presentation.cli collect --language python --count 20
+
+    OLD: python main.py --train code_generation
+    NEW: python -m presentation.cli train --dataset data/dataset.json
+
+    OLD: python main.py --validate
+    NEW: python -m presentation.cli info --validate
+
+See MIGRATION_GUIDE.md for complete migration guide.
+
+**END DEPRECATION NOTICE**
+--------------------------
+
+Questo è il file principale del sistema di Machine Learning per l'analisi e
 generazione di codice. Il sistema è composto da 3 fasi principali:
 
 1. DATA COLLECTION (--collect-data)
@@ -442,7 +464,7 @@ def train(task, dataset_path=None, model_name=None):
     logger.info("="*60)
     
     try:
-        from module.model.model_manager import ModelManager
+        from infrastructure.training.model_manager import ModelManager
         from config import MODEL_PATHS, DEFAULT_BATCH_SIZE, DEFAULT_EPOCHS, DEFAULT_LEARNING_RATE
 
         if task not in MODEL_PATHS:
@@ -471,7 +493,8 @@ def train(task, dataset_path=None, model_name=None):
                 print("[CLOUD] Attempting to download from cloud storage...")
                 
                 try:
-                    from module.storage.storage_manager import StorageManager
+                    from config.container import Container
+from application.services.storage_service import StorageService
                     storage = StorageManager()
                     
                     if storage.connect():
@@ -512,7 +535,7 @@ def train(task, dataset_path=None, model_name=None):
         # Select appropriate trainer
         if task in ["code_generation"]:
             logger.info("Using AdvancedTrainer for generation task")
-            from module.model.training_model_advanced import AdvancedTrainer
+            from infrastructure.training.advanced_trainer import AdvancedTrainer
             trainer = AdvancedTrainer(model_manager, use_gpu=True)
 
             trainer.train(
@@ -526,7 +549,7 @@ def train(task, dataset_path=None, model_name=None):
 
         else:
             logger.info("Using AdvancedTrainerClassifier for classification task")
-            from module.model.advanced_trainer_classifier import AdvancedTrainerClassifier
+            from infrastructure.training.advanced_trainer import AdvancedTrainer
             trainer = AdvancedTrainerClassifier(model_manager)
             
             trainer.train_model(
@@ -545,7 +568,8 @@ def train(task, dataset_path=None, model_name=None):
         try:
             if os.getenv('AUTO_BACKUP_AFTER_TRAINING', 'false').lower() == 'true':
                 print("\n[CLOUD] Uploading model to cloud storage...")
-                from module.storage.storage_manager import StorageManager
+                from config.container import Container
+from application.services.storage_service import StorageService
                 storage = StorageManager()
                 if storage.connect():
                     storage.backup_model(f"models/{task}", model_name=f"{task}_latest")
@@ -680,7 +704,8 @@ def sync_cloud(direction='download'):
     logger.info("="*60)
     
     try:
-        from module.storage.storage_manager import StorageManager
+        from config.container import Container
+from application.services.storage_service import StorageService
         
         storage = StorageManager()
         if not storage.connect():
@@ -878,7 +903,8 @@ def train_adaptive(task, dataset_path=None, base_model='Salesforce/codegen-350M-
         # Optional: Upload to cloud
         if os.getenv('AUTO_BACKUP_AFTER_TRAINING', 'false').lower() == 'true':
             try:
-                from module.storage.storage_manager import StorageManager
+                from config.container import Container
+from application.services.storage_service import StorageService
                 storage = StorageManager()
                 if storage.connect():
                     storage.backup_model(output_dir, model_name=f"{task}_adapted_latest")
@@ -1052,6 +1078,34 @@ def show_stats():
 
 def main():
     """Entry point principale"""
+    # ========================================================================
+    # DEPRECATION WARNING
+    # ========================================================================
+    import warnings
+    warnings.warn(
+        "\n" + "="*70 + "\n" +
+        "DEPRECATION WARNING: main.py is deprecated!\n" +
+        "Please use the new CLI interface instead:\n\n" +
+        "  python -m presentation.cli --help\n\n" +
+        "This file will be removed in v3.0.0\n" +
+        "See MIGRATION_GUIDE.md for migration instructions.\n" +
+        "="*70,
+        DeprecationWarning,
+        stacklevel=2
+    )
+    print("\n" + "="*70)
+    print("⚠️  DEPRECATION WARNING")
+    print("="*70)
+    print("This main.py is deprecated and will be removed in v3.0.0")
+    print("\nPlease use the new CLI interface:")
+    print("  python -m presentation.cli --help")
+    print("\nSee MIGRATION_GUIDE.md for migration instructions.")
+    print("="*70 + "\n")
+
+    # ========================================================================
+    # END DEPRECATION WARNING
+    # ========================================================================
+
     parser = argparse.ArgumentParser(
         description='ML Code Intelligence System',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1234,7 +1288,8 @@ Examples:
                 logger.warning(f"Errore durante il controllo delle dipendenze: {e}")
     
         elif args.test_connection:
-            from module.storage.storage_manager import StorageManager
+            from config.container import Container
+from application.services.storage_service import StorageService
             storage_manager = StorageManager()
             if storage_manager.connect():
                 print("[OK] Cloud storage connection successful")

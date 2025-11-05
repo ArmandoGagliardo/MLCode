@@ -37,10 +37,12 @@ load_dotenv()
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from module.storage.storage_manager import StorageManager
-from module.preprocessing.universal_parser_new import UniversalParser
-from module.utils.duplicate_manager import DuplicateManager
-from module.preprocessing.code_quality_filter import QualityFilter
+# Clean Architecture v2.0
+from config.container import Container
+from application.services.storage_service import StorageService
+from infrastructure.parsers.tree_sitter_parser import TreeSitterParser
+from infrastructure.duplicate.ast_duplicate_manager import ASTDuplicateManager
+from infrastructure.quality.heuristic_quality_filter import HeuristicQualityFilter
 from auto_cleanup import AutoCleanup
 from config import CLOUD_DATASET_PATH
 
