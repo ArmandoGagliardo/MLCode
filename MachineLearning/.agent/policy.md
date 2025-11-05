@@ -13,6 +13,10 @@ Queste regole sono **vincolanti** per qualunque agente che opera nel repository.
 
 - `application/`, `domain/`, `docs/`, `changesets/`, `.agent/`, `.vscode/`,`presentation/`,`infrastructure/`,`config/`,
 
+## DA NON CANCALLARE MAI
+
+- Cartella `.agent/`
+
 ## Convenzioni chiave
 
 - Un changeset per task

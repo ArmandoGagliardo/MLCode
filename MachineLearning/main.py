@@ -593,8 +593,11 @@ def validate():
     logger.info("="*60)
     
     try:
-        from module.scripts.validate_dataset import main as validate_main
-        validate_main()
+        # DEPRECATED: Use new CLI interface instead
+        # from module.scripts.validate_dataset import main as validate_main
+        # validate_main()
+        logger.warning("This function is deprecated. Use: python -m presentation.cli info --validate")
+        print("[DEPRECATED] Use new CLI: python -m presentation.cli info --validate")
     except Exception as e:
         logger.error(f"Validation failed: {e}", exc_info=True)
         print(f"\n[FAIL] Validation failed: {e}")
@@ -666,25 +669,15 @@ def run_pipeline():
     logger.info("="*60)
     
     try:
-        from module.tasks.task_pipeline import TaskPipeline
-        
-        model_paths = {
-            "code_generation": "models/code_generation",
-            "text_classification": "models/text_classification",
-            "security_classification": "models/security_classification"
-        }
+        # DEPRECATED: Use new InferenceService instead
+        # from module.tasks.task_pipeline import TaskPipeline
 
-        pipeline = TaskPipeline(model_paths)
+        logger.warning("This function is deprecated. Use InferenceService from Clean Architecture v2.0")
+        print("[DEPRECATED] Use new architecture:")
+        print("  from application.services import InferenceService")
+        print("  service = InferenceService()")
+        print("  See gpu_server.py for implementation example")
 
-        print("\n[*] Interactive pipeline active (type 'exit' to quit)\n")
-        while True:
-            text = input("[INPUT] Enter request or code: ")
-            if text.strip().lower() == "exit":
-                break
-
-            result = pipeline.process(text)
-            print(f"[OK] Result: {result}\n")
-            
     except Exception as e:
         logger.error(f"Pipeline error: {e}", exc_info=True)
         print(f"\n[FAIL] Pipeline error: {e}")

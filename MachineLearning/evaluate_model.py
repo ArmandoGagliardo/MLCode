@@ -22,7 +22,7 @@ import logging
 # Add module path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from module.model.model_validator import ModelValidator
+from infrastructure.validation import ModelValidator
 
 # Configure logging
 logging.basicConfig(
