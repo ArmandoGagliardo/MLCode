@@ -1,5 +1,5 @@
 """CLI Commands"""
 
-from presentation.cli.commands import collect, train, dataset
+from presentation.cli.commands import collect, train, dataset, help_cmd
 
-__all__ = ['collect', 'train', 'dataset']
+__all__ = ['collect', 'train', 'dataset', 'help_cmd']

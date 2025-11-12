@@ -21,7 +21,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from presentation.cli.commands import collect, train, dataset
+from presentation.cli.commands import collect, train, dataset, help_cmd
 
 
 @click.group()
@@ -56,6 +56,7 @@ def cli(ctx, verbose, quiet):
 cli.add_command(collect.collect)
 cli.add_command(train.train)
 cli.add_command(dataset.dataset)
+cli.add_command(help_cmd.help_command)
 
 
 @cli.command()

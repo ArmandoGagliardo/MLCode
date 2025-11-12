@@ -1,0 +1,17 @@
+# API Server Dependencies
+# Install with: pip install -r requirements-api.txt
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+
+# HTTP Client
+requests==2.31.0
+
+# Data Validation
+pydantic==2.5.0
+
+# Already in main requirements.txt:
+# torch
+# transformers
+# datasets

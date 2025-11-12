@@ -1,0 +1,90 @@
+{
+  "run_id": "e2e_20251106_103258",
+  "status": "SUCCESS",
+  "phases": {
+    "data_collection": {
+      "status": "SUCCESS",
+      "duration_seconds": 0.0027008056640625,
+      "samples_collected": 10,
+      "dataset_path": "C:\\Users\\arman\\AppData\\Local\\Temp\\test_e2e_dknr8922\\dataset.json",
+      "dataset_size_kb": 2.041015625
+    },
+    "training": {
+      "status": "SUCCESS",
+      "duration_seconds": 118.98667311668396,
+      "num_epochs": 2,
+      "train_samples": 8,
+      "val_samples": 2,
+      "final_train_loss": 10.186000108718872,
+      "model_size_mb": 1912.1490726470947,
+      "model_path": "C:\\Users\\arman\\AppData\\Local\\Temp\\test_e2e_dknr8922\\model"
+    },
+    "validation": {
+      "status": "SUCCESS",
+      "duration_seconds": 0.9756217002868652,
+      "checks_total": 3,
+      "checks_passed": 3,
+      "checks_failed": 0,
+      "errors": [],
+      "warnings": [],
+      "metrics": {
+        "model_load_time": 0.1960592269897461,
+        "param_count": 124697433
+      }
+    },
+    "inference": {
+      "status": "SUCCESS",
+      "duration_seconds": 7.317390203475952,
+      "test_samples": 5,
+      "successful_predictions": 5,
+      "failed_predictions": 0,
+      "avg_inference_time_ms": 1094.4202899932861,
+      "min_inference_time_ms": 758.7640285491943,
+      "max_inference_time_ms": 2112.5006675720215,
+      "predictions": [
+        {
+          "id": 1,
+          "input": "def add(a, b):",
+          "output": "def add(a, b):nel RELEASE noon venom served Zian ...\" crossian weakness served z packagealm Tian JRalm JR",
+          "inference_time_ms": 2112.5
+        },
+        {
+          "id": 2,
+          "input": "def multiply(x, y):",
+          "output": "def multiply(x, y):nel cross geographically laterian Gunn Zian Jouredouredcons instead Tian Jouredoured packagealm",
+          "inference_time_ms": 765.86
+        },
+        {
+          "id": 3,
+          "input": "def greet(name):",
+          "output": "def greet(name):rac re relalmrog ch Zalm Tianalm Tianouredoured instead Talm Talm",
+          "inference_time_ms": 758.76
+        },
+        {
+          "id": 4,
+          "input": "def factorial(n):",
+          "output": "def factorial(n):nel cross geographically cross geographicallyams cross cross crossian ((almrog than likelyalm Tian JRalm",
+          "inference_time_ms": 770.33
+        },
+        {
+          "id": 5,
+          "input": "def is_even(n):",
+          "output": "def is_even(n):nel geographicallyian groups Zian ...\"oured crossian groupsalmrog instead Tianrrog instead T",
+          "inference_time_ms": 1064.65
+        }
+      ]
+    },
+    "cleanup": {
+      "status": "SUCCESS",
+      "duration_seconds": 0.36882996559143066,
+      "files_deleted": 23,
+      "space_freed_mb": 1912.151065826416
+    }
+  },
+  "total_duration": 127.83589434623718,
+  "system_info": {
+    "python_version": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64"
+  }
+}

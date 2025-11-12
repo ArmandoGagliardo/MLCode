@@ -9,6 +9,11 @@ REGOLE OPERATIVE (NON NEGOZIABILI):
    0. PER OGNI TASK:
    - Sintetizza il contesto in 3–5 bullet pertinenti al task.
    - Per ogni anomalia o task aprire un thread in `open_threads.md`.
+   - Consulta `objectives.md` per allineamento con KPI.
+   - Consulta `decisions.md` per allineamento con decisioni precedenti.
+   - Consulta `glossary.md` per definizioni di termini chiave.
+   - Consulta la cache nella cartella `.agent/cache/` per la struttura delle classi e funzioni.
+   - Aggiorna la cache quando crei nuove classi/funzioni, con le relative chiamate e docstring.
 2. OGNI MODIFICA È UN “CHANGESET”:
    - Crea/aggiorna `/changesets/YYYYMMDD-<slug>.yml` con: scope, rationale, file_toccati, step_di_test, rollback, status.
    - Modifica SOLO i file dichiarati nel changeset.
